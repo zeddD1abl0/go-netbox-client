@@ -1,4 +1,4 @@
-# go-netbox-client
+# Go Netbox Client
 
 
 
@@ -41,6 +41,57 @@ Use the built-in continuous integration in GitLab.
 - [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
 - [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
 - [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+
+***
+
+# Go Netbox Client
+
+A Go client library for interacting with Netbox API v4.0, designed for use with Terraform providers.
+
+## Features
+
+- Full support for Netbox API v4.0
+- Comprehensive test coverage
+- Clean and idiomatic Go code
+- Easy integration with Terraform providers
+
+## Installation
+
+```bash
+go get github.com/jordan/go-netbox-client
+```
+
+## Usage
+
+```go
+import "github.com/jordan/go-netbox-client/client"
+
+// Create a new client
+netboxClient, err := client.NewClient(
+    "https://netbox.example.com/api",
+    "your-api-token",
+)
+if err != nil {
+    log.Fatal(err)
+}
+```
+
+## Development
+
+### Requirements
+
+- Go 1.21 or higher
+- Access to a Netbox v4.0 instance for integration testing
+
+### Running Tests
+
+```bash
+go test ./... -v
+```
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
 
 ***
 

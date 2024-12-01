@@ -1,0 +1,65 @@
+image: golang:1.21
+
+variables:
+  GOPATH: $CI_PROJECT_DIR/.go
+  GO111MODULE: "on"
+
+cache:
+  paths:
+    - .go/pkg/mod/
+
+stages:
+  - test
+  - lint
+  - build
+
+before_script:
+  - go mod download
+
+unit_tests:
+  stage: test
+  script:
+    - go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
+  coverage: '/coverage: \d+.\d+% of statements/'
+  artifacts:
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.txt
+
+lint:
+  stage: lint
+  script:
+    - go install golang.org/x/lint/golint@latest
+    - golint -set_exit_status ./...
+    - go vet ./...
+
+format_check:
+  stage: lint
+  script:
+    - test -z $(gofmt -l .)
+
+build:
+  stage: build
+  script:
+    - go build -v ./...
+  artifacts:
+    paths:
+      - bin/
+
+security_scan:
+  stage: test
+  script:
+    - go install golang.org/x/vuln/cmd/govulncheck@latest
+    - govulncheck ./...
+
+# Optional: Enable release job when tags are pushed
+release:
+  stage: build
+  script:
+    - go build -v -o bin/netbox-client ./...
+  artifacts:
+    paths:
+      - bin/netbox-client
+  only:
+    - tags
