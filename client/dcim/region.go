@@ -1,7 +1,7 @@
 package dcim
 
 import (
-	"github.com/jordan/go-netbox-client/models"
+	"github.com/zeddD1abl0/go-netbox-client/models"
 )
 
 // Region represents a Netbox region

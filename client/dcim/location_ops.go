@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"strconv"
 
-	"github.com/jordan/go-netbox-client/client"
+	"github.com/zeddD1abl0/go-netbox-client/client"
 )
 
 // ListLocations lists all locations

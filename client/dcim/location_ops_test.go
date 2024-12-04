@@ -2,13 +2,11 @@ package dcim
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 	"testing"
 
-	"github.com/jordan/go-netbox-client/client"
-	"github.com/jordan/go-netbox-client/models"
 	"github.com/stretchr/testify/assert"
+	"github.com/zeddD1abl0/go-netbox-client/client"
 )
 
 func TestListLocations(t *testing.T) {

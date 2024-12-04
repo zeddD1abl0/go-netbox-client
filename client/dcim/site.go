@@ -3,7 +3,7 @@ package dcim
 import (
 	"fmt"
 	"net/http"
-	"github.com/jordan/go-netbox-client/models"
+	"github.com/zeddD1abl0/go-netbox-client/models"
 )
 
 // Valid status values for sites

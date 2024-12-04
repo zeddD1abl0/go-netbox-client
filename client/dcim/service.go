@@ -2,8 +2,8 @@ package dcim
 
 import (
 	"fmt"
-	"github.com/jordan/go-netbox-client/client"
-	"github.com/jordan/go-netbox-client/models"
+	"github.com/zeddD1abl0/go-netbox-client/client"
+	"github.com/zeddD1abl0/go-netbox-client/models"
 	"net/http"
 )
 

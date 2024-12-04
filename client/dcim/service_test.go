@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/jordan/go-netbox-client/client"
-	"github.com/jordan/go-netbox-client/models"
+	"github.com/zeddD1abl0/go-netbox-client/client"
+	"github.com/zeddD1abl0/go-netbox-client/models"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

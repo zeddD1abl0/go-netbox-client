@@ -1,4 +1,4 @@
-module github.com/jordan/go-netbox-client
+module github.com/zeddD1abl0/go-netbox-client
 
 go 1.21
 
