@@ -1,0 +1,175 @@
+Circuits
+
+{
+    "circuit-group-assignments": "https://demo.netbox.dev/api/circuits/circuit-group-assignments/",
+    "circuit-groups": "https://demo.netbox.dev/api/circuits/circuit-groups/",
+    "circuit-terminations": "https://demo.netbox.dev/api/circuits/circuit-terminations/",
+    "circuit-types": "https://demo.netbox.dev/api/circuits/circuit-types/",
+    "circuits": "https://demo.netbox.dev/api/circuits/circuits/",
+    "provider-accounts": "https://demo.netbox.dev/api/circuits/provider-accounts/",
+    "provider-networks": "https://demo.netbox.dev/api/circuits/provider-networks/",
+    "providers": "https://demo.netbox.dev/api/circuits/providers/"
+}
+
+Core
+
+{
+    "data-files": "https://demo.netbox.dev/api/core/data-files/",
+    "data-sources": "https://demo.netbox.dev/api/core/data-sources/",
+    "jobs": "https://demo.netbox.dev/api/core/jobs/",
+    "object-changes": "https://demo.netbox.dev/api/core/object-changes/"
+}
+
+DCIM
+
+{
+    "cable-terminations": "https://demo.netbox.dev/api/dcim/cable-terminations/",
+    "cables": "https://demo.netbox.dev/api/dcim/cables/",
+    "connected-device": "https://demo.netbox.dev/api/dcim/connected-device/",
+    "console-port-templates": "https://demo.netbox.dev/api/dcim/console-port-templates/",
+    "console-ports": "https://demo.netbox.dev/api/dcim/console-ports/",
+    "console-server-port-templates": "https://demo.netbox.dev/api/dcim/console-server-port-templates/",
+    "console-server-ports": "https://demo.netbox.dev/api/dcim/console-server-ports/",
+    "device-bay-templates": "https://demo.netbox.dev/api/dcim/device-bay-templates/",
+    "device-bays": "https://demo.netbox.dev/api/dcim/device-bays/",
+    "device-roles": "https://demo.netbox.dev/api/dcim/device-roles/",
+    "device-types": "https://demo.netbox.dev/api/dcim/device-types/",
+    "devices": "https://demo.netbox.dev/api/dcim/devices/",
+    "front-port-templates": "https://demo.netbox.dev/api/dcim/front-port-templates/",
+    "front-ports": "https://demo.netbox.dev/api/dcim/front-ports/",
+    "interface-templates": "https://demo.netbox.dev/api/dcim/interface-templates/",
+    "interfaces": "https://demo.netbox.dev/api/dcim/interfaces/",
+    "inventory-item-roles": "https://demo.netbox.dev/api/dcim/inventory-item-roles/",
+    "inventory-item-templates": "https://demo.netbox.dev/api/dcim/inventory-item-templates/",
+    "inventory-items": "https://demo.netbox.dev/api/dcim/inventory-items/",
+    # "locations": "https://demo.netbox.dev/api/dcim/locations/",
+    "manufacturers": "https://demo.netbox.dev/api/dcim/manufacturers/",
+    "module-bay-templates": "https://demo.netbox.dev/api/dcim/module-bay-templates/",
+    "module-bays": "https://demo.netbox.dev/api/dcim/module-bays/",
+    "module-types": "https://demo.netbox.dev/api/dcim/module-types/",
+    "modules": "https://demo.netbox.dev/api/dcim/modules/",
+    "platforms": "https://demo.netbox.dev/api/dcim/platforms/",
+    "power-feeds": "https://demo.netbox.dev/api/dcim/power-feeds/",
+    "power-outlet-templates": "https://demo.netbox.dev/api/dcim/power-outlet-templates/",
+    "power-outlets": "https://demo.netbox.dev/api/dcim/power-outlets/",
+    "power-panels": "https://demo.netbox.dev/api/dcim/power-panels/",
+    "power-port-templates": "https://demo.netbox.dev/api/dcim/power-port-templates/",
+    "power-ports": "https://demo.netbox.dev/api/dcim/power-ports/",
+    "rack-reservations": "https://demo.netbox.dev/api/dcim/rack-reservations/",
+    "rack-roles": "https://demo.netbox.dev/api/dcim/rack-roles/",
+    "rack-types": "https://demo.netbox.dev/api/dcim/rack-types/",
+    "racks": "https://demo.netbox.dev/api/dcim/racks/",
+    "rear-port-templates": "https://demo.netbox.dev/api/dcim/rear-port-templates/",
+    "rear-ports": "https://demo.netbox.dev/api/dcim/rear-ports/",
+    # "regions": "https://demo.netbox.dev/api/dcim/regions/",
+    # "site-groups": "https://demo.netbox.dev/api/dcim/site-groups/",
+    # "sites": "https://demo.netbox.dev/api/dcim/sites/",
+    "virtual-chassis": "https://demo.netbox.dev/api/dcim/virtual-chassis/",
+    "virtual-device-contexts": "https://demo.netbox.dev/api/dcim/virtual-device-contexts/"
+}
+
+Extra
+
+{
+    "bookmarks": "https://demo.netbox.dev/api/extras/bookmarks/",
+    "config-contexts": "https://demo.netbox.dev/api/extras/config-contexts/",
+    "config-templates": "https://demo.netbox.dev/api/extras/config-templates/",
+    "custom-field-choice-sets": "https://demo.netbox.dev/api/extras/custom-field-choice-sets/",
+    "custom-fields": "https://demo.netbox.dev/api/extras/custom-fields/",
+    "custom-links": "https://demo.netbox.dev/api/extras/custom-links/",
+    "event-rules": "https://demo.netbox.dev/api/extras/event-rules/",
+    "export-templates": "https://demo.netbox.dev/api/extras/export-templates/",
+    "image-attachments": "https://demo.netbox.dev/api/extras/image-attachments/",
+    "journal-entries": "https://demo.netbox.dev/api/extras/journal-entries/",
+    "notification-groups": "https://demo.netbox.dev/api/extras/notification-groups/",
+    "notifications": "https://demo.netbox.dev/api/extras/notifications/",
+    "object-types": "https://demo.netbox.dev/api/extras/object-types/",
+    "saved-filters": "https://demo.netbox.dev/api/extras/saved-filters/",
+    "scripts": "https://demo.netbox.dev/api/extras/scripts/",
+    "subscriptions": "https://demo.netbox.dev/api/extras/subscriptions/",
+    "tags": "https://demo.netbox.dev/api/extras/tags/",
+    "webhooks": "https://demo.netbox.dev/api/extras/webhooks/"
+}
+
+IPAM
+
+{
+    "aggregates": "https://demo.netbox.dev/api/ipam/aggregates/",
+    "asn-ranges": "https://demo.netbox.dev/api/ipam/asn-ranges/",
+    "asns": "https://demo.netbox.dev/api/ipam/asns/",
+    "fhrp-group-assignments": "https://demo.netbox.dev/api/ipam/fhrp-group-assignments/",
+    "fhrp-groups": "https://demo.netbox.dev/api/ipam/fhrp-groups/",
+    "ip-addresses": "https://demo.netbox.dev/api/ipam/ip-addresses/",
+    "ip-ranges": "https://demo.netbox.dev/api/ipam/ip-ranges/",
+    "prefixes": "https://demo.netbox.dev/api/ipam/prefixes/",
+    "rirs": "https://demo.netbox.dev/api/ipam/rirs/",
+    "roles": "https://demo.netbox.dev/api/ipam/roles/",
+    "route-targets": "https://demo.netbox.dev/api/ipam/route-targets/",
+    "service-templates": "https://demo.netbox.dev/api/ipam/service-templates/",
+    "services": "https://demo.netbox.dev/api/ipam/services/",
+    "vlan-groups": "https://demo.netbox.dev/api/ipam/vlan-groups/",
+    "vlans": "https://demo.netbox.dev/api/ipam/vlans/",
+    "vrfs": "https://demo.netbox.dev/api/ipam/vrfs/"
+}
+
+Plugins
+
+{
+    "installed-plugins": "https://demo.netbox.dev/api/plugins/installed-plugins/"
+}
+
+Tenancy
+
+{
+    "contact-assignments": "https://demo.netbox.dev/api/tenancy/contact-assignments/",
+    "contact-groups": "https://demo.netbox.dev/api/tenancy/contact-groups/",
+    "contact-roles": "https://demo.netbox.dev/api/tenancy/contact-roles/",
+    "contacts": "https://demo.netbox.dev/api/tenancy/contacts/",
+    "tenant-groups": "https://demo.netbox.dev/api/tenancy/tenant-groups/",
+    "tenants": "https://demo.netbox.dev/api/tenancy/tenants/"
+}
+
+Users
+
+{
+    "config": "https://demo.netbox.dev/api/users/config/",
+    "groups": "https://demo.netbox.dev/api/users/groups/",
+    "permissions": "https://demo.netbox.dev/api/users/permissions/",
+    "tokens": "https://demo.netbox.dev/api/users/tokens/",
+    "users": "https://demo.netbox.dev/api/users/users/"
+}
+
+Virtualization
+
+{
+    "cluster-groups": "https://demo.netbox.dev/api/virtualization/cluster-groups/",
+    "cluster-types": "https://demo.netbox.dev/api/virtualization/cluster-types/",
+    "clusters": "https://demo.netbox.dev/api/virtualization/clusters/",
+    "interfaces": "https://demo.netbox.dev/api/virtualization/interfaces/",
+    "virtual-disks": "https://demo.netbox.dev/api/virtualization/virtual-disks/",
+    "virtual-machines": "https://demo.netbox.dev/api/virtualization/virtual-machines/"
+}
+
+VPN
+
+{
+    "ike-policies": "https://demo.netbox.dev/api/vpn/ike-policies/",
+    "ike-proposals": "https://demo.netbox.dev/api/vpn/ike-proposals/",
+    "ipsec-policies": "https://demo.netbox.dev/api/vpn/ipsec-policies/",
+    "ipsec-profiles": "https://demo.netbox.dev/api/vpn/ipsec-profiles/",
+    "ipsec-proposals": "https://demo.netbox.dev/api/vpn/ipsec-proposals/",
+    "l2vpn-terminations": "https://demo.netbox.dev/api/vpn/l2vpn-terminations/",
+    "l2vpns": "https://demo.netbox.dev/api/vpn/l2vpns/",
+    "tunnel-groups": "https://demo.netbox.dev/api/vpn/tunnel-groups/",
+    "tunnel-terminations": "https://demo.netbox.dev/api/vpn/tunnel-terminations/",
+    "tunnels": "https://demo.netbox.dev/api/vpn/tunnels/"
+}
+
+Wireless
+
+{
+    "wireless-lan-groups": "https://demo.netbox.dev/api/wireless/wireless-lan-groups/",
+    "wireless-lans": "https://demo.netbox.dev/api/wireless/wireless-lans/",
+    "wireless-links": "https://demo.netbox.dev/api/wireless/wireless-links/"
+}
+
