@@ -55,17 +55,17 @@ func TestListSiteGroups(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			client := client.NewClientForTesting(test)
 			service := NewService(client)
 
-			siteGroups, err := service.ListSiteGroups(spec_test.input)
+			groups, err := service.ListSiteGroups(spec_test.input)
 			if spec_test.expectError {
 				assert.Error(test, err)
 				return
 			}
 
 			assert.NoError(test, err)
-			assert.NotNil(test, siteGroups)
+			assert.NotNil(test, groups)
 		})
 	}
 }
@@ -104,7 +104,7 @@ func TestGetSiteGroup(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			client := client.NewClientForTesting(test)
 			service := NewService(client)
 
 			siteGroup, err := service.GetSiteGroup(spec_test.id)
@@ -160,7 +160,7 @@ func TestCreateSiteGroup(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			client := client.NewClientForTesting(test)
 			service := NewService(client)
 
 			siteGroup, err := service.CreateSiteGroup(spec_test.input)
@@ -219,7 +219,7 @@ func TestUpdateSiteGroup(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			client := client.NewClientForTesting(test)
 			service := NewService(client)
 
 			siteGroup, err := service.UpdateSiteGroup(spec_test.input)
@@ -273,7 +273,7 @@ func TestPatchSiteGroup(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			client := client.NewClientForTesting(test)
 			service := NewService(client)
 
 			siteGroup, err := service.PatchSiteGroup(spec_test.input)
@@ -320,7 +320,7 @@ func TestDeleteSiteGroup(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := client.NewMockClient(test, spec_test.expectedPath, "", spec_test.mockStatus)
+			client := client.NewClientForTesting(test)
 			service := NewService(client)
 
 			err := service.DeleteSiteGroup(spec_test.id)

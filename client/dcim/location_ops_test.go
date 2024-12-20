@@ -1,6 +1,7 @@
 package dcim
 
 import (
+	"encoding/json"
 	"net/http"
 	"testing"
 
@@ -48,8 +49,15 @@ func TestListLocations(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			mockClient := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
-			service := NewService(mockClient)
+			var mockResponse interface{}
+			if spec_test.mockResponse != "" {
+				err := json.Unmarshal([]byte(spec_test.mockResponse), &mockResponse)
+				if err != nil {
+					test.Fatalf("failed to unmarshal mock response: %v", err)
+				}
+			}
+			client := client.NewClientForTestingWithResponse(test, spec_test.mockStatus, mockResponse)
+			service := NewService(client)
 
 			locations, err := service.ListLocations(spec_test.input)
 			if spec_test.expectError {
@@ -97,8 +105,15 @@ func TestGetLocation(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			mockClient := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
-			service := NewService(mockClient)
+			var mockResponse interface{}
+			if spec_test.mockResponse != "" {
+				err := json.Unmarshal([]byte(spec_test.mockResponse), &mockResponse)
+				if err != nil {
+					test.Fatalf("failed to unmarshal mock response: %v", err)
+				}
+			}
+			client := client.NewClientForTestingWithResponse(test, spec_test.mockStatus, mockResponse)
+			service := NewService(client)
 
 			location, err := service.GetLocation(spec_test.id)
 			if spec_test.expectError {
@@ -124,11 +139,12 @@ func TestCreateLocation(test *testing.T) {
 		{
 			name: "successful create",
 			input: &CreateLocationInput{
-				Name: "New Location",
-				Slug: "new-location",
+				Name: "Test Location",
+				Site: 1,
+				Slug: "test-location",
 			},
 			expectedPath: "/api/dcim/locations",
-			mockResponse: `{"id": 1, "name": "New Location", "slug": "new-location"}`,
+			mockResponse: `{"id": 1, "name": "Test Location", "slug": "test-location"}`,
 			mockStatus:   http.StatusCreated,
 		},
 		{
@@ -153,8 +169,15 @@ func TestCreateLocation(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			mockClient := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
-			service := NewService(mockClient)
+			var mockResponse interface{}
+			if spec_test.mockResponse != "" {
+				err := json.Unmarshal([]byte(spec_test.mockResponse), &mockResponse)
+				if err != nil {
+					test.Fatalf("failed to unmarshal mock response: %v", err)
+				}
+			}
+			client := client.NewClientForTestingWithResponse(test, spec_test.mockStatus, mockResponse)
+			service := NewService(client)
 
 			location, err := service.CreateLocation(spec_test.input)
 			if spec_test.expectError {
@@ -182,6 +205,7 @@ func TestUpdateLocation(test *testing.T) {
 			input: &UpdateLocationInput{
 				ID:   1,
 				Name: "Updated Location",
+				Site: 1,
 				Slug: "updated-location",
 			},
 			expectedPath: "/api/dcim/locations/1",
@@ -210,8 +234,15 @@ func TestUpdateLocation(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			mockClient := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
-			service := NewService(mockClient)
+			var mockResponse interface{}
+			if spec_test.mockResponse != "" {
+				err := json.Unmarshal([]byte(spec_test.mockResponse), &mockResponse)
+				if err != nil {
+					test.Fatalf("failed to unmarshal mock response: %v", err)
+				}
+			}
+			client := client.NewClientForTestingWithResponse(test, spec_test.mockStatus, mockResponse)
+			service := NewService(client)
 
 			location, err := service.UpdateLocation(spec_test.input)
 			if spec_test.expectError {
@@ -257,8 +288,15 @@ func TestDeleteLocation(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			mockClient := client.NewMockClient(test, spec_test.expectedPath, "", spec_test.mockStatus)
-			service := NewService(mockClient)
+			var mockResponse interface{}
+			if spec_test.mockResponse != "" {
+				err := json.Unmarshal([]byte(spec_test.mockResponse), &mockResponse)
+				if err != nil {
+					test.Fatalf("failed to unmarshal mock response: %v", err)
+				}
+			}
+			client := client.NewClientForTestingWithResponse(test, spec_test.mockStatus, mockResponse)
+			service := NewService(client)
 
 			err := service.DeleteLocation(spec_test.id)
 			if spec_test.expectError {

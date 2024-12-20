@@ -71,6 +71,12 @@ func NewClientForTesting(t *testing.T) *Client {
 	return newTestClient(t, ts)
 }
 
+// NewClientForTestingWithResponse creates a new client for testing with a specific response
+func NewClientForTestingWithResponse(t *testing.T, code int, body interface{}) *Client {
+	ts := newTestServer(t, code, body)
+	return newTestClient(t, ts)
+}
+
 // mockPaginatedResponse creates a mock paginated response
 func mockPaginatedResponse(items interface{}) map[string]interface{} {
 	return map[string]interface{}{

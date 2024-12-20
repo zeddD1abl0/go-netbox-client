@@ -16,7 +16,7 @@ func newService(client *Client) *Service {
 func (s *Service) BuildPath(parts ...string) string {
 	path := s.Client.baseURL
 	for _, part := range parts {
-		path += "/" + part
+		path += part + "/"
 	}
 	return path
 }

@@ -2,33 +2,34 @@ package client
 
 import (
 	"testing"
+
 	"github.com/stretchr/testify/assert"
 )
 
 func TestNewClient(t *testing.T) {
 	tests := []struct {
-		name     string
-		baseURL  string
-		token    string
-		wantErr  bool
-		errMsg   string
+		name    string
+		baseURL string
+		token   string
+		wantErr bool
+		errMsg  string
 	}{
 		{
 			name:    "valid client creation",
-			baseURL: "https://netbox.example.com/api",
-			token:   "abc123",
+			baseURL: "http://127.0.0.1:8000/api/",
+			token:   "42f1da103a3052ae9d2dfb76c93bfaa9e950adc5",
 			wantErr: false,
 		},
 		{
 			name:    "empty baseURL",
 			baseURL: "",
-			token:   "abc123",
+			token:   "42f1da103a3052ae9d2dfb76c93bfaa9e950adc5",
 			wantErr: true,
 			errMsg:  "baseURL cannot be empty",
 		},
 		{
 			name:    "empty token",
-			baseURL: "https://netbox.example.com/api",
+			baseURL: "http://127.0.0.1:8000/api/",
 			token:   "",
 			wantErr: true,
 			errMsg:  "token cannot be empty",

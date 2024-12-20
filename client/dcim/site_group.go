@@ -6,45 +6,45 @@ import (
 
 // SiteGroup represents a Netbox site group
 type SiteGroup struct {
-	ID           int              `json:"id"`
-	URL          string           `json:"url"`
-	Name         string           `json:"name"`
-	Slug         string           `json:"slug"`
-	Parent       *SiteGroup       `json:"parent,omitempty"`
-	Description  string           `json:"description,omitempty"`
-	Tags         []models.Tag     `json:"tags,omitempty"`
-	CustomFields map[string]any   `json:"custom_fields,omitempty"`
-	Created      string           `json:"created"`
-	LastUpdated  string           `json:"last_updated"`
+	ID           int                `json:"id"`
+	URL          string             `json:"url"`
+	Name         string             `json:"name"`
+	Slug         string             `json:"slug"`
+	Parent       *SiteGroup         `json:"parent,omitempty"`
+	Description  string             `json:"description,omitempty"`
+	Tags         []models.TagCreate `json:"tags,omitempty"`
+	CustomFields map[string]any     `json:"custom_fields,omitempty"`
+	Created      string             `json:"created"`
+	LastUpdated  string             `json:"last_updated"`
 }
 
 // ListSiteGroupsInput represents the input for listing site groups
 type ListSiteGroupsInput struct {
-	Name     string
-	Parent   string
-	Tag      string
-	Limit    int
-	Offset   int
+	Name   string
+	Parent string
+	Tag    string
+	Limit  int
+	Offset int
 }
 
 // CreateSiteGroupInput represents the input for creating a site group
 type CreateSiteGroupInput struct {
-	Name         string            `json:"name"`
-	Slug         string            `json:"slug"`
-	Parent       int              `json:"parent,omitempty"`
-	Description  string           `json:"description,omitempty"`
-	Tags         []models.Tag     `json:"tags,omitempty"`
-	CustomFields map[string]any   `json:"custom_fields,omitempty"`
+	Name         string             `json:"name"`
+	Slug         string             `json:"slug"`
+	Parent       int                `json:"parent,omitempty"`
+	Description  string             `json:"description,omitempty"`
+	Tags         []models.TagCreate `json:"tags,omitempty"`
+	CustomFields map[string]any     `json:"custom_fields,omitempty"`
 }
 
 // Validate validates the CreateSiteGroupInput
 func (input *CreateSiteGroupInput) Validate() error {
 	var errors models.ValidationErrors
-	
+
 	if err := models.ValidateRequired("name", input.Name); err != nil {
 		errors = append(errors, *err.(*models.ValidationError))
 	}
-	
+
 	if err := models.ValidateSlug(input.Slug); err != nil {
 		errors = append(errors, *err.(*models.ValidationError))
 	}
@@ -58,23 +58,23 @@ func (input *CreateSiteGroupInput) Validate() error {
 
 // UpdateSiteGroupInput represents the input for updating a site group
 type UpdateSiteGroupInput struct {
-	ID           int               `json:"-"`
-	Name         string            `json:"name"`
-	Slug         string            `json:"slug"`
-	Parent       int              `json:"parent,omitempty"`
-	Description  string           `json:"description,omitempty"`
-	Tags         []models.Tag     `json:"tags,omitempty"`
-	CustomFields map[string]any   `json:"custom_fields,omitempty"`
+	ID           int                `json:"-"`
+	Name         string             `json:"name"`
+	Slug         string             `json:"slug"`
+	Parent       int                `json:"parent,omitempty"`
+	Description  string             `json:"description,omitempty"`
+	Tags         []models.TagCreate `json:"tags,omitempty"`
+	CustomFields map[string]any     `json:"custom_fields,omitempty"`
 }
 
 // Validate validates the UpdateSiteGroupInput
 func (input *UpdateSiteGroupInput) Validate() error {
 	var errors models.ValidationErrors
-	
+
 	if err := models.ValidateRequired("name", input.Name); err != nil {
 		errors = append(errors, *err.(*models.ValidationError))
 	}
-	
+
 	if err := models.ValidateSlug(input.Slug); err != nil {
 		errors = append(errors, *err.(*models.ValidationError))
 	}
@@ -88,13 +88,13 @@ func (input *UpdateSiteGroupInput) Validate() error {
 
 // PatchSiteGroupInput represents the input for patching a site group
 type PatchSiteGroupInput struct {
-	ID           int               `json:"-"`
-	Name         *string           `json:"name,omitempty"`
-	Slug         *string           `json:"slug,omitempty"`
-	Parent       *int             `json:"parent,omitempty"`
-	Description  *string          `json:"description,omitempty"`
-	Tags         *[]models.Tag    `json:"tags,omitempty"`
-	CustomFields map[string]any   `json:"custom_fields,omitempty"`
+	ID           int                 `json:"-"`
+	Name         *string             `json:"name,omitempty"`
+	Slug         *string             `json:"slug,omitempty"`
+	Parent       *int                `json:"parent,omitempty"`
+	Description  *string             `json:"description,omitempty"`
+	Tags         *[]models.TagCreate `json:"tags,omitempty"`
+	CustomFields map[string]any      `json:"custom_fields,omitempty"`
 }
 
 // Validate validates the PatchSiteGroupInput

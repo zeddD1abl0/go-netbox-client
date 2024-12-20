@@ -14,10 +14,10 @@ func (service *Service) ListRegions(input *ListRegionsInput) ([]Region, error) {
 	// Build query parameters
 	params := map[string]string{}
 	if input.Name != "" {
-		params["name"] = input.Name
+		params["name__ic"] = input.Name
 	}
 	if input.Parent != "" {
-		params["parent"] = input.Parent
+		params["parent_id"] = input.Parent
 	}
 	if input.Tag != "" {
 		params["tag"] = input.Tag
@@ -44,10 +44,55 @@ func (service *Service) ListRegions(input *ListRegionsInput) ([]Region, error) {
 	// Convert results to []Region
 	regions := make([]Region, len(response.Results))
 	for i, result := range response.Results {
-		region, ok := result.(Region)
+		resultMap, ok := result.(map[string]any)
 		if !ok {
 			return nil, fmt.Errorf("unexpected result type at index %d", i)
 		}
+
+		// Create a new Region
+		var region Region
+		
+		// Map basic fields
+		if id, ok := resultMap["id"].(float64); ok {
+			region.ID = int(id)
+		}
+		if url, ok := resultMap["url"].(string); ok {
+			region.URL = url
+		}
+		if name, ok := resultMap["name"].(string); ok {
+			region.Name = name
+		}
+		if slug, ok := resultMap["slug"].(string); ok {
+			region.Slug = slug
+		}
+		if description, ok := resultMap["description"].(string); ok {
+			region.Description = description
+		}
+		if created, ok := resultMap["created"].(string); ok {
+			region.Created = created
+		}
+		if lastUpdated, ok := resultMap["last_updated"].(string); ok {
+			region.LastUpdated = lastUpdated
+		}
+		if siteCount, ok := resultMap["site_count"].(float64); ok {
+			region.SiteCount = int(siteCount)
+		}
+
+		// Map parent if present
+		if parentMap, ok := resultMap["parent"].(map[string]any); ok {
+			parent := &Region{}
+			if parentID, ok := parentMap["id"].(float64); ok {
+				parent.ID = int(parentID)
+			}
+			if parentName, ok := parentMap["name"].(string); ok {
+				parent.Name = parentName
+			}
+			if parentSlug, ok := parentMap["slug"].(string); ok {
+				parent.Slug = parentSlug
+			}
+			region.Parent = parent
+		}
+
 		regions[i] = region
 	}
 
@@ -96,7 +141,7 @@ func (service *Service) CreateRegion(input *CreateRegionInput) (*Region, error) 
 		return nil, fmt.Errorf("error creating region: %w", err)
 	}
 
-	if resp.StatusCode() != http.StatusCreated {
+	if resp.StatusCode() != http.StatusOK && resp.StatusCode() != http.StatusCreated {
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
 	}
 
@@ -125,7 +170,7 @@ func (service *Service) UpdateRegion(input *UpdateRegionInput) (*Region, error) 
 		return nil, fmt.Errorf("region not found")
 	}
 
-	if resp.StatusCode() != http.StatusOK {
+	if resp.StatusCode() != http.StatusOK && resp.StatusCode() != http.StatusCreated {
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
 	}
 
@@ -154,7 +199,7 @@ func (service *Service) PatchRegion(input *PatchRegionInput) (*Region, error) {
 		return nil, fmt.Errorf("region not found")
 	}
 
-	if resp.StatusCode() != http.StatusOK {
+	if resp.StatusCode() != http.StatusOK && resp.StatusCode() != http.StatusCreated {
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
 	}
 

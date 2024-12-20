@@ -108,6 +108,61 @@ Run tests with race condition detection:
 go test -race ./...
 ```
 
+### Integration Tests
+
+This project includes a comprehensive suite of integration tests that verify the client's functionality against a real Netbox server. These tests cover various scenarios including:
+
+- Site Groups management
+- Region hierarchies
+- Location hierarchies with complex relationships
+- Cross-resource relationships and filtering
+
+### Running Integration Tests
+
+There are two ways to run the integration tests:
+
+1. Using the setup script (recommended):
+   ```bash
+   ./run_integration_tests.sh
+   ```
+   This script will:
+   - Prompt for your Netbox URL and API token
+   - Validate the configuration
+   - Run all integration tests
+   - Display results with proper formatting
+
+2. Manually setting environment variables:
+   ```bash
+   export NETBOX_URL="https://your-netbox-server/api"
+   export NETBOX_TOKEN="your-api-token"
+   go test ./integration_tests/... -v
+   ```
+
+### Test Requirements
+
+- A running Netbox instance
+- API token with read/write permissions
+- Network access to the Netbox server
+
+### Test Categories
+
+1. Site Groups (`integration_tests/site_group_test.go`)
+   - CRUD operations
+   - Filtering and search
+   - Parent-child relationships
+
+2. Regions (`integration_tests/region_test.go`)
+   - Hierarchical relationships
+   - Tag-based filtering
+   - Complex search scenarios
+
+3. Locations (`integration_tests/location_test.go`)
+   - Complex hierarchies (campus/building/floor)
+   - Cross-resource relationships
+   - Multiple filtering scenarios
+
+For more details about the integration tests, see the [integration_tests/README.md](integration_tests/README.md) file.
+
 ### Contributing
 
 1. Fork the repository

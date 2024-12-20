@@ -18,38 +18,38 @@ const (
 
 // Site represents a Netbox site
 type Site struct {
-	ID              int            `json:"id"`
-	URL             string         `json:"url"`
-	Name            string         `json:"name"`
-	Slug            string         `json:"slug"`
-	Status          *Status        `json:"status"`
-	Region          *Region        `json:"region"`
-	Description     string         `json:"description"`
-	PhysicalAddress string         `json:"physical_address,omitempty"`
-	ShippingAddress string         `json:"shipping_address,omitempty"`
-	Latitude        *float64       `json:"latitude,omitempty"`
-	Longitude       *float64       `json:"longitude,omitempty"`
-	Comments        string         `json:"comments,omitempty"`
-	Tags            []models.Tag   `json:"tags,omitempty"`
-	CustomFields    map[string]any `json:"custom_fields,omitempty"`
-	Created         string         `json:"created"`
-	LastUpdated     string         `json:"last_updated"`
+	ID              int                `json:"id"`
+	URL             string             `json:"url"`
+	Name            string             `json:"name"`
+	Slug            string             `json:"slug"`
+	Status          *Status            `json:"status"`
+	Region          *Region            `json:"region"`
+	Description     string             `json:"description"`
+	PhysicalAddress string             `json:"physical_address,omitempty"`
+	ShippingAddress string             `json:"shipping_address,omitempty"`
+	Latitude        *float64           `json:"latitude,omitempty"`
+	Longitude       *float64           `json:"longitude,omitempty"`
+	Comments        string             `json:"comments,omitempty"`
+	Tags            []models.TagCreate `json:"tags,omitempty"`
+	CustomFields    map[string]any     `json:"custom_fields,omitempty"`
+	Created         string             `json:"created"`
+	LastUpdated     string             `json:"last_updated"`
 }
 
 // CreateSiteInput represents the input for creating a site
 type CreateSiteInput struct {
-	Name            string         `json:"name"`
-	Slug            string         `json:"slug"`
-	Status          string         `json:"status,omitempty"`
-	Region          int            `json:"region,omitempty"`
-	Description     string         `json:"description,omitempty"`
-	PhysicalAddress string         `json:"physical_address,omitempty"`
-	ShippingAddress string         `json:"shipping_address,omitempty"`
-	Latitude        *float64       `json:"latitude,omitempty"`
-	Longitude       *float64       `json:"longitude,omitempty"`
-	Comments        string         `json:"comments,omitempty"`
-	Tags            []models.Tag   `json:"tags,omitempty"`
-	CustomFields    map[string]any `json:"custom_fields,omitempty"`
+	Name            string             `json:"name"`
+	Slug            string             `json:"slug"`
+	Status          string             `json:"status,omitempty"`
+	Region          int                `json:"region,omitempty"`
+	Description     string             `json:"description,omitempty"`
+	PhysicalAddress string             `json:"physical_address,omitempty"`
+	ShippingAddress string             `json:"shipping_address,omitempty"`
+	Latitude        *float64           `json:"latitude,omitempty"`
+	Longitude       *float64           `json:"longitude,omitempty"`
+	Comments        string             `json:"comments,omitempty"`
+	Tags            []models.TagCreate `json:"tags,omitempty"`
+	CustomFields    map[string]any     `json:"custom_fields,omitempty"`
 }
 
 // Validate validates the CreateSiteInput
@@ -94,19 +94,19 @@ func (input *CreateSiteInput) Validate() error {
 
 // UpdateSiteInput represents the input for updating a site
 type UpdateSiteInput struct {
-	ID              int            `json:"-"` // Used in URL, not in body
-	Name            string         `json:"name"`
-	Slug            string         `json:"slug"`
-	Status          string         `json:"status,omitempty"`
-	Region          int            `json:"region,omitempty"`
-	Description     string         `json:"description,omitempty"`
-	PhysicalAddress string         `json:"physical_address,omitempty"`
-	ShippingAddress string         `json:"shipping_address,omitempty"`
-	Latitude        *float64       `json:"latitude,omitempty"`
-	Longitude       *float64       `json:"longitude,omitempty"`
-	Comments        string         `json:"comments,omitempty"`
-	Tags            []models.Tag   `json:"tags,omitempty"`
-	CustomFields    map[string]any `json:"custom_fields,omitempty"`
+	ID              int                `json:"-"` // Used in URL, not in body
+	Name            string             `json:"name"`
+	Slug            string             `json:"slug"`
+	Status          string             `json:"status,omitempty"`
+	Region          int                `json:"region,omitempty"`
+	Description     string             `json:"description,omitempty"`
+	PhysicalAddress string             `json:"physical_address,omitempty"`
+	ShippingAddress string             `json:"shipping_address,omitempty"`
+	Latitude        *float64           `json:"latitude,omitempty"`
+	Longitude       *float64           `json:"longitude,omitempty"`
+	Comments        string             `json:"comments,omitempty"`
+	Tags            []models.TagCreate `json:"tags,omitempty"`
+	CustomFields    map[string]any     `json:"custom_fields,omitempty"`
 }
 
 // Validate validates the UpdateSiteInput

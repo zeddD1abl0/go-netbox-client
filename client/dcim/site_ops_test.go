@@ -1,16 +1,13 @@
 package dcim
 
 import (
+	"encoding/json"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/zeddD1abl0/go-netbox-client/client"
 )
-
-func intPtr(i int) *int {
-	return &i
-}
 
 func TestListSites(test *testing.T) {
 	tests := []struct {
@@ -63,7 +60,14 @@ func TestListSites(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			var mockResponse interface{}
+			if spec_test.mockResponse != "" {
+				err := json.Unmarshal([]byte(spec_test.mockResponse), &mockResponse)
+				if err != nil {
+					test.Fatalf("failed to unmarshal mock response: %v", err)
+				}
+			}
+			client := client.NewClientForTestingWithResponse(test, spec_test.mockStatus, mockResponse)
 			service := NewService(client)
 
 			sites, err := service.ListSites(spec_test.input)
@@ -112,7 +116,14 @@ func TestGetSite(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			var mockResponse interface{}
+			if spec_test.mockResponse != "" {
+				err := json.Unmarshal([]byte(spec_test.mockResponse), &mockResponse)
+				if err != nil {
+					test.Fatalf("failed to unmarshal mock response: %v", err)
+				}
+			}
+			client := client.NewClientForTestingWithResponse(test, spec_test.mockStatus, mockResponse)
 			service := NewService(client)
 
 			site, err := service.GetSite(spec_test.id)
@@ -170,7 +181,14 @@ func TestCreateSite(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			var mockResponse interface{}
+			if spec_test.mockResponse != "" {
+				err := json.Unmarshal([]byte(spec_test.mockResponse), &mockResponse)
+				if err != nil {
+					test.Fatalf("failed to unmarshal mock response: %v", err)
+				}
+			}
+			client := client.NewClientForTestingWithResponse(test, spec_test.mockStatus, mockResponse)
 			service := NewService(client)
 
 			site, err := service.CreateSite(spec_test.input)
@@ -197,12 +215,13 @@ func TestUpdateSite(test *testing.T) {
 		{
 			name: "successful update",
 			input: &UpdateSiteInput{
-				ID:   1,
-				Name: "Updated Site",
-				Slug: "updated-site",
+				ID:     1,
+				Name:   "Updated Site",
+				Slug:   "updated-site",
+				Status: "active",
 			},
 			expectedPath: "/api/dcim/sites/1",
-			mockResponse: `{"id": 1, "name": "Updated Site", "slug": "updated-site"}`,
+			mockResponse: `{"id": 1, "name": "Updated Site", "slug": "updated-site", "status": "active"}`,
 			mockStatus:   http.StatusOK,
 		},
 		{
@@ -227,7 +246,14 @@ func TestUpdateSite(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			var mockResponse interface{}
+			if spec_test.mockResponse != "" {
+				err := json.Unmarshal([]byte(spec_test.mockResponse), &mockResponse)
+				if err != nil {
+					test.Fatalf("failed to unmarshal mock response: %v", err)
+				}
+			}
+			client := client.NewClientForTestingWithResponse(test, spec_test.mockStatus, mockResponse)
 			service := NewService(client)
 
 			site, err := service.UpdateSite(spec_test.input)
@@ -280,7 +306,14 @@ func TestPatchSite(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			var mockResponse interface{}
+			if spec_test.mockResponse != "" {
+				err := json.Unmarshal([]byte(spec_test.mockResponse), &mockResponse)
+				if err != nil {
+					test.Fatalf("failed to unmarshal mock response: %v", err)
+				}
+			}
+			client := client.NewClientForTestingWithResponse(test, spec_test.mockStatus, mockResponse)
 			service := NewService(client)
 
 			site, err := service.PatchSite(spec_test.input)
@@ -327,7 +360,14 @@ func TestDeleteSite(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := client.NewMockClient(test, spec_test.expectedPath, "", spec_test.mockStatus)
+			var mockResponse interface{}
+			if spec_test.mockResponse != "" {
+				err := json.Unmarshal([]byte(spec_test.mockResponse), &mockResponse)
+				if err != nil {
+					test.Fatalf("failed to unmarshal mock response: %v", err)
+				}
+			}
+			client := client.NewClientForTestingWithResponse(test, spec_test.mockStatus, mockResponse)
 			service := NewService(client)
 
 			err := service.DeleteSite(spec_test.id)

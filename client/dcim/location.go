@@ -6,19 +6,19 @@ import (
 
 // Location represents a Netbox location
 type Location struct {
-	ID           int            `json:"id"`
-	URL          string         `json:"url"`
-	Name         string         `json:"name"`
-	Slug         string         `json:"slug"`
-	Site         Site           `json:"site"`
-	Parent       *Location      `json:"parent,omitempty"`
-	Description  string         `json:"description,omitempty"`
-	Tags         []models.Tag   `json:"tags,omitempty"`
-	CustomFields map[string]any `json:"custom_fields,omitempty"`
-	Created      string         `json:"created"`
-	LastUpdated  string         `json:"last_updated"`
-	RackCount    int            `json:"rack_count"`
-	DeviceCount  int            `json:"device_count"`
+	ID           int                `json:"id"`
+	URL          string             `json:"url"`
+	Name         string             `json:"name"`
+	Slug         string             `json:"slug"`
+	Site         *Site              `json:"site"`
+	Parent       *Location          `json:"parent,omitempty"`
+	Description  string             `json:"description,omitempty"`
+	Tags         []models.TagCreate `json:"tags,omitempty"`
+	CustomFields map[string]any     `json:"custom_fields,omitempty"`
+	Created      string             `json:"created"`
+	LastUpdated  string             `json:"last_updated"`
+	RackCount    int                `json:"rack_count"`
+	DeviceCount  int                `json:"device_count"`
 }
 
 // ListLocationsInput represents the input for listing locations
@@ -33,13 +33,13 @@ type ListLocationsInput struct {
 
 // CreateLocationInput represents the input for creating a location
 type CreateLocationInput struct {
-	Name         string         `json:"name"`
-	Slug         string         `json:"slug"`
-	Site         int            `json:"site"`
-	Parent       int            `json:"parent,omitempty"`
-	Description  string         `json:"description,omitempty"`
-	Tags         []models.Tag   `json:"tags,omitempty"`
-	CustomFields map[string]any `json:"custom_fields,omitempty"`
+	Name         string             `json:"name"`
+	Slug         string             `json:"slug"`
+	Site         int                `json:"site"`
+	Parent       int                `json:"parent,omitempty"`
+	Description  string             `json:"description,omitempty"`
+	Tags         []models.TagCreate `json:"tags,omitempty"`
+	CustomFields map[string]any     `json:"custom_fields,omitempty"`
 }
 
 // Validate validates the CreateLocationInput
@@ -70,14 +70,14 @@ func (input *CreateLocationInput) Validate() error {
 
 // UpdateLocationInput represents the input for updating a location
 type UpdateLocationInput struct {
-	ID           int            `json:"-"`
-	Name         string         `json:"name"`
-	Slug         string         `json:"slug"`
-	Site         int            `json:"site"`
-	Parent       int            `json:"parent,omitempty"`
-	Description  string         `json:"description,omitempty"`
-	Tags         []models.Tag   `json:"tags,omitempty"`
-	CustomFields map[string]any `json:"custom_fields,omitempty"`
+	ID           int                `json:"-"`
+	Name         string             `json:"name"`
+	Slug         string             `json:"slug"`
+	Site         int                `json:"site"`
+	Parent       int                `json:"parent,omitempty"`
+	Description  string             `json:"description,omitempty"`
+	Tags         []models.TagCreate `json:"tags,omitempty"`
+	CustomFields map[string]any     `json:"custom_fields,omitempty"`
 }
 
 // Validate validates the UpdateLocationInput
@@ -108,14 +108,14 @@ func (input *UpdateLocationInput) Validate() error {
 
 // PatchLocationInput represents the input for patching a location
 type PatchLocationInput struct {
-	ID           int            `json:"-"`
-	Name         *string        `json:"name,omitempty"`
-	Slug         *string        `json:"slug,omitempty"`
-	Site         *int           `json:"site,omitempty"`
-	Parent       *int           `json:"parent,omitempty"`
-	Description  *string        `json:"description,omitempty"`
-	Tags         *[]models.Tag  `json:"tags,omitempty"`
-	CustomFields map[string]any `json:"custom_fields,omitempty"`
+	ID           int                 `json:"-"`
+	Name         *string             `json:"name,omitempty"`
+	Slug         *string             `json:"slug,omitempty"`
+	Site         *int                `json:"site,omitempty"`
+	Parent       *int                `json:"parent,omitempty"`
+	Description  *string             `json:"description,omitempty"`
+	Tags         *[]models.TagCreate `json:"tags,omitempty"`
+	CustomFields map[string]any      `json:"custom_fields,omitempty"`
 }
 
 // Validate validates the PatchLocationInput
