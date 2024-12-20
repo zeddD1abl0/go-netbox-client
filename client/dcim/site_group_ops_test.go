@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeddD1abl0/go-netbox-client/client"
 )
 
 func TestListSiteGroups(test *testing.T) {
@@ -54,7 +55,7 @@ func TestListSiteGroups(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := newMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			client := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
 			service := NewService(client)
 
 			siteGroups, err := service.ListSiteGroups(spec_test.input)
@@ -103,7 +104,7 @@ func TestGetSiteGroup(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := newMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			client := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
 			service := NewService(client)
 
 			siteGroup, err := service.GetSiteGroup(spec_test.id)
@@ -159,7 +160,7 @@ func TestCreateSiteGroup(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := newMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			client := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
 			service := NewService(client)
 
 			siteGroup, err := service.CreateSiteGroup(spec_test.input)
@@ -218,7 +219,7 @@ func TestUpdateSiteGroup(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := newMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			client := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
 			service := NewService(client)
 
 			siteGroup, err := service.UpdateSiteGroup(spec_test.input)
@@ -264,15 +265,15 @@ func TestPatchSiteGroup(test *testing.T) {
 			expectError:  true,
 		},
 		{
-			name: "validation error",
-			input: &PatchSiteGroupInput{}, // Missing ID
+			name:        "validation error",
+			input:       &PatchSiteGroupInput{}, // Missing ID
 			expectError: true,
 		},
 	}
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := newMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			client := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
 			service := NewService(client)
 
 			siteGroup, err := service.PatchSiteGroup(spec_test.input)
@@ -319,7 +320,7 @@ func TestDeleteSiteGroup(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := newMockClient(test, spec_test.expectedPath, "", spec_test.mockStatus)
+			client := client.NewMockClient(test, spec_test.expectedPath, "", spec_test.mockStatus)
 			service := NewService(client)
 
 			err := service.DeleteSiteGroup(spec_test.id)

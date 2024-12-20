@@ -3,11 +3,13 @@ package dcim
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/zeddD1abl0/go-netbox-client/client"
 )
 
 // ListSiteGroups lists all site groups matching the input criteria
 func (service *Service) ListSiteGroups(input *ListSiteGroupsInput) ([]SiteGroup, error) {
-	path := service.buildPath("dcim", "site-groups")
+	path := service.BuildPath("dcim", "site-groups")
 	
 	// Build query parameters
 	params := map[string]string{}
@@ -28,14 +30,9 @@ func (service *Service) ListSiteGroups(input *ListSiteGroupsInput) ([]SiteGroup,
 	}
 
 	// Make request
-	var response struct {
-		Count    int         `json:"count"`
-		Next     *string     `json:"next"`
-		Previous *string     `json:"previous"`
-		Results  []SiteGroup `json:"results"`
-	}
-
-	resp, err := service.client.httpClient.R().
+	var response client.Response
+	response.Results = make([]any, 0)
+	_, err := service.Client.R().
 		SetQueryParams(params).
 		SetResult(&response).
 		Get(path)
@@ -44,19 +41,25 @@ func (service *Service) ListSiteGroups(input *ListSiteGroupsInput) ([]SiteGroup,
 		return nil, fmt.Errorf("error listing site groups: %w", err)
 	}
 
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+	// Convert results to []SiteGroup
+	siteGroups := make([]SiteGroup, len(response.Results))
+	for i, result := range response.Results {
+		siteGroup, ok := result.(SiteGroup)
+		if !ok {
+			return nil, fmt.Errorf("unexpected result type at index %d", i)
+		}
+		siteGroups[i] = siteGroup
 	}
 
-	return response.Results, nil
+	return siteGroups, nil
 }
 
 // GetSiteGroup retrieves a single site group by ID
 func (service *Service) GetSiteGroup(id int) (*SiteGroup, error) {
-	path := service.buildPath("dcim", "site-groups", fmt.Sprintf("%d", id))
+	path := service.BuildPath("dcim", "site-groups", fmt.Sprintf("%d", id))
 	
 	var siteGroup SiteGroup
-	resp, err := service.client.httpClient.R().
+	resp, err := service.Client.R().
 		SetResult(&siteGroup).
 		Get(path)
 	
@@ -81,10 +84,10 @@ func (service *Service) CreateSiteGroup(input *CreateSiteGroupInput) (*SiteGroup
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	path := service.buildPath("dcim", "site-groups")
+	path := service.BuildPath("dcim", "site-groups")
 	
 	var siteGroup SiteGroup
-	resp, err := service.client.httpClient.R().
+	resp, err := service.Client.R().
 		SetBody(input).
 		SetResult(&siteGroup).
 		Post(path)
@@ -106,10 +109,10 @@ func (service *Service) UpdateSiteGroup(input *UpdateSiteGroupInput) (*SiteGroup
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	path := service.buildPath("dcim", "site-groups", fmt.Sprintf("%d", input.ID))
+	path := service.BuildPath("dcim", "site-groups", fmt.Sprintf("%d", input.ID))
 	
 	var siteGroup SiteGroup
-	resp, err := service.client.httpClient.R().
+	resp, err := service.Client.R().
 		SetBody(input).
 		SetResult(&siteGroup).
 		Put(path)
@@ -135,10 +138,10 @@ func (service *Service) PatchSiteGroup(input *PatchSiteGroupInput) (*SiteGroup, 
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	path := service.buildPath("dcim", "site-groups", fmt.Sprintf("%d", input.ID))
+	path := service.BuildPath("dcim", "site-groups", fmt.Sprintf("%d", input.ID))
 	
 	var siteGroup SiteGroup
-	resp, err := service.client.httpClient.R().
+	resp, err := service.Client.R().
 		SetBody(input).
 		SetResult(&siteGroup).
 		Patch(path)
@@ -164,26 +167,34 @@ func (service *Service) PutSiteGroup(input *UpdateSiteGroupInput) (*SiteGroup, e
 		return nil, err
 	}
 
-	req, err := service.client.NewRequest("PUT", fmt.Sprintf("dcim/site-groups/%d/", input.ID), nil)
+	path := service.BuildPath("dcim", "site-groups", fmt.Sprintf("%d", input.ID))
+
+	var siteGroup SiteGroup
+	resp, err := service.Client.R().
+		SetBody(input).
+		SetResult(&siteGroup).
+		Put(path)
+
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error updating site group: %w", err)
 	}
 
-	req.Body = input
-	siteGroup := new(SiteGroup)
-	err = service.client.Do(req, siteGroup)
-	if err != nil {
-		return nil, err
+	if resp.StatusCode() == http.StatusNotFound {
+		return nil, fmt.Errorf("site group not found")
 	}
 
-	return siteGroup, nil
+	if resp.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+	}
+
+	return &siteGroup, nil
 }
 
 // DeleteSiteGroup deletes a site group
 func (service *Service) DeleteSiteGroup(id int) error {
-	path := service.buildPath("dcim", "site-groups", fmt.Sprintf("%d", id))
+	path := service.BuildPath("dcim", "site-groups", fmt.Sprintf("%d", id))
 	
-	resp, err := service.client.httpClient.R().
+	resp, err := service.Client.R().
 		Delete(path)
 	
 	if err != nil {

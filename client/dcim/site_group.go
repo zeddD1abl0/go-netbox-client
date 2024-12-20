@@ -101,7 +101,7 @@ type PatchSiteGroupInput struct {
 func (input *PatchSiteGroupInput) Validate() error {
 	if input.ID == 0 {
 		return &models.ValidationError{
-			Name:    "id",
+			Field:   "id",
 			Message: "ID is required",
 		}
 	}

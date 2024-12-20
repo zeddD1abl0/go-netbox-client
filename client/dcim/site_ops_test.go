@@ -1,12 +1,16 @@
 package dcim
 
 import (
-	"fmt"
 	"net/http"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeddD1abl0/go-netbox-client/client"
 )
+
+func intPtr(i int) *int {
+	return &i
+}
 
 func TestListSites(test *testing.T) {
 	tests := []struct {
@@ -15,49 +19,51 @@ func TestListSites(test *testing.T) {
 		expectedPath   string
 		expectedParams map[string]string
 		mockResponse   string
-		mockStatus    int
-		expectError   bool
+		mockStatus     int
+		expectError    bool
 	}{
 		{
-			name: "successful list with no filters",
-			input: &ListSitesInput{},
+			name:         "successful list with no filters",
+			input:        &ListSitesInput{},
 			expectedPath: "/api/dcim/sites",
 			mockResponse: `{"count": 2, "results": [{"id": 1, "name": "Site 1"}, {"id": 2, "name": "Site 2"}]}`,
-			mockStatus: http.StatusOK,
+			mockStatus:   http.StatusOK,
 		},
 		{
 			name: "successful list with filters",
 			input: &ListSitesInput{
-				Name: "Test",
+				BaseListInput: BaseListInput{
+					Name:   "Test",
+					Tag:    "prod",
+					Limit:  10,
+					Offset: 0,
+				},
 				Status: "active",
 				Region: "us-west",
-				Tag: "prod",
-				Limit: 10,
-				Offset: 0,
 			},
 			expectedPath: "/api/dcim/sites",
 			expectedParams: map[string]string{
-				"name": "Test",
+				"name":   "Test",
 				"status": "active",
 				"region": "us-west",
-				"tag": "prod",
-				"limit": "10",
+				"tag":    "prod",
+				"limit":  "10",
 			},
 			mockResponse: `{"count": 1, "results": [{"id": 1, "name": "Test Site"}]}`,
-			mockStatus: http.StatusOK,
+			mockStatus:   http.StatusOK,
 		},
 		{
-			name: "server error",
-			input: &ListSitesInput{},
+			name:         "server error",
+			input:        &ListSitesInput{},
 			expectedPath: "/api/dcim/sites",
-			mockStatus: http.StatusInternalServerError,
-			expectError: true,
+			mockStatus:   http.StatusInternalServerError,
+			expectError:  true,
 		},
 	}
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := newMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			client := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
 			service := NewService(client)
 
 			sites, err := service.ListSites(spec_test.input)
@@ -82,31 +88,31 @@ func TestGetSite(test *testing.T) {
 		expectError  bool
 	}{
 		{
-			name: "successful get",
-			id: 1,
+			name:         "successful get",
+			id:           1,
 			expectedPath: "/api/dcim/sites/1",
 			mockResponse: `{"id": 1, "name": "Test Site"}`,
-			mockStatus: http.StatusOK,
+			mockStatus:   http.StatusOK,
 		},
 		{
-			name: "not found",
-			id: 999,
+			name:         "not found",
+			id:           999,
 			expectedPath: "/api/dcim/sites/999",
-			mockStatus: http.StatusNotFound,
-			expectError: true,
+			mockStatus:   http.StatusNotFound,
+			expectError:  true,
 		},
 		{
-			name: "server error",
-			id: 1,
+			name:         "server error",
+			id:           1,
 			expectedPath: "/api/dcim/sites/1",
-			mockStatus: http.StatusInternalServerError,
-			expectError: true,
+			mockStatus:   http.StatusInternalServerError,
+			expectError:  true,
 		},
 	}
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := newMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			client := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
 			service := NewService(client)
 
 			site, err := service.GetSite(spec_test.id)
@@ -134,13 +140,13 @@ func TestCreateSite(test *testing.T) {
 		{
 			name: "successful create",
 			input: &CreateSiteInput{
-				Name: "New Site",
-				Slug: "new-site",
+				Name:   "New Site",
+				Slug:   "new-site",
 				Status: "active",
 			},
 			expectedPath: "/api/dcim/sites",
 			mockResponse: `{"id": 1, "name": "New Site", "slug": "new-site", "status": "active"}`,
-			mockStatus: http.StatusCreated,
+			mockStatus:   http.StatusCreated,
 		},
 		{
 			name: "validation error",
@@ -157,14 +163,14 @@ func TestCreateSite(test *testing.T) {
 				Slug: "new-site",
 			},
 			expectedPath: "/api/dcim/sites",
-			mockStatus: http.StatusInternalServerError,
-			expectError: true,
+			mockStatus:   http.StatusInternalServerError,
+			expectError:  true,
 		},
 	}
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := newMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			client := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
 			service := NewService(client)
 
 			site, err := service.CreateSite(spec_test.input)
@@ -191,28 +197,28 @@ func TestUpdateSite(test *testing.T) {
 		{
 			name: "successful update",
 			input: &UpdateSiteInput{
-				ID: 1,
+				ID:   1,
 				Name: "Updated Site",
 				Slug: "updated-site",
 			},
 			expectedPath: "/api/dcim/sites/1",
 			mockResponse: `{"id": 1, "name": "Updated Site", "slug": "updated-site"}`,
-			mockStatus: http.StatusOK,
+			mockStatus:   http.StatusOK,
 		},
 		{
 			name: "not found",
 			input: &UpdateSiteInput{
-				ID: 999,
+				ID:   999,
 				Name: "Updated Site",
 			},
 			expectedPath: "/api/dcim/sites/999",
-			mockStatus: http.StatusNotFound,
-			expectError: true,
+			mockStatus:   http.StatusNotFound,
+			expectError:  true,
 		},
 		{
 			name: "validation error",
 			input: &UpdateSiteInput{
-				ID: 1,
+				ID:   1,
 				Name: "", // Required field
 			},
 			expectError: true,
@@ -221,7 +227,7 @@ func TestUpdateSite(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := newMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			client := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
 			service := NewService(client)
 
 			site, err := service.UpdateSite(spec_test.input)
@@ -248,33 +254,33 @@ func TestPatchSite(test *testing.T) {
 		{
 			name: "successful patch",
 			input: &PatchSiteInput{
-				ID: 1,
+				ID:   intPtr(1),
 				Name: stringPtr("Patched Site"),
 			},
 			expectedPath: "/api/dcim/sites/1",
 			mockResponse: `{"id": 1, "name": "Patched Site"}`,
-			mockStatus: http.StatusOK,
+			mockStatus:   http.StatusOK,
 		},
 		{
 			name: "not found",
 			input: &PatchSiteInput{
-				ID: 999,
+				ID:   intPtr(999),
 				Name: stringPtr("Patched Site"),
 			},
 			expectedPath: "/api/dcim/sites/999",
-			mockStatus: http.StatusNotFound,
-			expectError: true,
+			mockStatus:   http.StatusNotFound,
+			expectError:  true,
 		},
 		{
-			name: "validation error",
-			input: &PatchSiteInput{}, // Missing ID
+			name:        "validation error",
+			input:       &PatchSiteInput{}, // Missing ID
 			expectError: true,
 		},
 	}
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := newMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			client := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
 			service := NewService(client)
 
 			site, err := service.PatchSite(spec_test.input)
@@ -298,30 +304,30 @@ func TestDeleteSite(test *testing.T) {
 		expectError  bool
 	}{
 		{
-			name: "successful delete",
-			id: 1,
+			name:         "successful delete",
+			id:           1,
 			expectedPath: "/api/dcim/sites/1",
-			mockStatus: http.StatusNoContent,
+			mockStatus:   http.StatusNoContent,
 		},
 		{
-			name: "not found",
-			id: 999,
+			name:         "not found",
+			id:           999,
 			expectedPath: "/api/dcim/sites/999",
-			mockStatus: http.StatusNotFound,
-			expectError: true,
+			mockStatus:   http.StatusNotFound,
+			expectError:  true,
 		},
 		{
-			name: "server error",
-			id: 1,
+			name:         "server error",
+			id:           1,
 			expectedPath: "/api/dcim/sites/1",
-			mockStatus: http.StatusInternalServerError,
-			expectError: true,
+			mockStatus:   http.StatusInternalServerError,
+			expectError:  true,
 		},
 	}
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := newMockClient(test, spec_test.expectedPath, "", spec_test.mockStatus)
+			client := client.NewMockClient(test, spec_test.expectedPath, "", spec_test.mockStatus)
 			service := NewService(client)
 
 			err := service.DeleteSite(spec_test.id)
@@ -333,9 +339,4 @@ func TestDeleteSite(test *testing.T) {
 			assert.NoError(test, err)
 		})
 	}
-}
-
-// Helper function to create string pointer
-func stringPtr(s string) *string {
-	return &s
 }

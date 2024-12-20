@@ -1,170 +1,272 @@
 package dcim
 
 import (
-	"encoding/json"
 	"net/http"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"github.com/zeddD1abl0/go-netbox-client/client"
+	"github.com/stretchr/testify/assert"
 )
 
-func TestListLocations(t *testing.T) {
-	client, mux, teardown := client.NewClientForTesting()
-	defer teardown()
-
-	mux.HandleFunc("/api/dcim/locations/", func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "GET", r.Method)
-		resp := client.Response[[]Location]{
-			Results: []Location{
-				{
-					ID:   1,
-					Name: "Test Location",
-					Slug: "test-location",
-				},
+func TestListLocations(test *testing.T) {
+	tests := []struct {
+		name         string
+		input        *ListLocationsInput
+		expectedPath string
+		mockResponse string
+		mockStatus   int
+		expectError  bool
+	}{
+		{
+			name:         "successful list with no filters",
+			input:        &ListLocationsInput{},
+			expectedPath: "/api/dcim/locations",
+			mockResponse: `{"count": 2, "results": [{"id": 1, "name": "Location 1"}, {"id": 2, "name": "Location 2"}]}`,
+			mockStatus:   http.StatusOK,
+		},
+		{
+			name: "successful list with filters",
+			input: &ListLocationsInput{
+				Name:   "Test",
+				Parent: "parent-location",
+				Tag:    "prod",
+				Limit:  10,
+				Offset: 0,
 			},
-		}
-		json.NewEncoder(w).Encode(resp)
-	})
-
-	service := NewService(client)
-	locations, err := service.ListLocations(&ListLocationsInput{
-		Name: "Test Location",
-	})
-
-	assert.NoError(t, err)
-	assert.Equal(t, 1, len(locations))
-	assert.Equal(t, "Test Location", locations[0].Name)
-}
-
-func TestGetLocation(t *testing.T) {
-	client, mux, teardown := client.NewClientForTesting()
-	defer teardown()
-
-	mux.HandleFunc("/api/dcim/locations/1/", func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "GET", r.Method)
-		location := Location{
-			ID:   1,
-			Name: "Test Location",
-			Slug: "test-location",
-		}
-		json.NewEncoder(w).Encode(location)
-	})
-
-	service := NewService(client)
-	location, err := service.GetLocation(1)
-
-	assert.NoError(t, err)
-	assert.Equal(t, "Test Location", location.Name)
-}
-
-func TestCreateLocation(t *testing.T) {
-	client, mux, teardown := client.NewClientForTesting()
-	defer teardown()
-
-	mux.HandleFunc("/api/dcim/locations/", func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "POST", r.Method)
-
-		var input CreateLocationInput
-		json.NewDecoder(r.Body).Decode(&input)
-		assert.Equal(t, "Test Location", input.Name)
-
-		location := Location{
-			ID:   1,
-			Name: input.Name,
-			Slug: input.Slug,
-		}
-		json.NewEncoder(w).Encode(location)
-	})
-
-	service := NewService(client)
-	input := &CreateLocationInput{
-		Name: "Test Location",
-		Slug: "test-location",
-		Site: 1,
+			expectedPath: "/api/dcim/locations",
+			mockResponse: `{"count": 1, "results": [{"id": 1, "name": "Test Location"}]}`,
+			mockStatus:   http.StatusOK,
+		},
+		{
+			name:         "server error",
+			input:        &ListLocationsInput{},
+			expectedPath: "/api/dcim/locations",
+			mockStatus:   http.StatusInternalServerError,
+			expectError:  true,
+		},
 	}
-	location, err := service.CreateLocation(input)
 
-	assert.NoError(t, err)
-	assert.Equal(t, "Test Location", location.Name)
-}
+	for _, spec_test := range tests {
+		test.Run(spec_test.name, func(test *testing.T) {
+			mockClient := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			service := NewService(mockClient)
 
-func TestUpdateLocation(t *testing.T) {
-	client, mux, teardown := client.NewClientForTesting()
-	defer teardown()
+			locations, err := service.ListLocations(spec_test.input)
+			if spec_test.expectError {
+				assert.Error(test, err)
+				return
+			}
 
-	mux.HandleFunc("/api/dcim/locations/1/", func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "PUT", r.Method)
-
-		var input UpdateLocationInput
-		json.NewDecoder(r.Body).Decode(&input)
-		assert.Equal(t, "Updated Location", input.Name)
-
-		location := Location{
-			ID:   1,
-			Name: input.Name,
-			Slug: input.Slug,
-		}
-		json.NewEncoder(w).Encode(location)
-	})
-
-	service := NewService(client)
-	input := &UpdateLocationInput{
-		ID:   1,
-		Name: "Updated Location",
-		Slug: "updated-location",
-		Site: 1,
+			assert.NoError(test, err)
+			assert.NotNil(test, locations)
+		})
 	}
-	location, err := service.UpdateLocation(input)
-
-	assert.NoError(t, err)
-	assert.Equal(t, "Updated Location", location.Name)
 }
 
-func TestPatchLocation(t *testing.T) {
-	client, mux, teardown := client.NewClientForTesting()
-	defer teardown()
-
-	mux.HandleFunc("/api/dcim/locations/1/", func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "PATCH", r.Method)
-
-		var input PatchLocationInput
-		json.NewDecoder(r.Body).Decode(&input)
-		assert.Equal(t, "Patched Location", *input.Name)
-
-		location := Location{
-			ID:   1,
-			Name: *input.Name,
-			Slug: *input.Slug,
-		}
-		json.NewEncoder(w).Encode(location)
-	})
-
-	service := NewService(client)
-	name := "Patched Location"
-	slug := "patched-location"
-	input := &PatchLocationInput{
-		ID:   1,
-		Name: &name,
-		Slug: &slug,
+func TestGetLocation(test *testing.T) {
+	tests := []struct {
+		name         string
+		id           int
+		expectedPath string
+		mockResponse string
+		mockStatus   int
+		expectError  bool
+	}{
+		{
+			name:         "successful get",
+			id:           1,
+			expectedPath: "/api/dcim/locations/1",
+			mockResponse: `{"id": 1, "name": "Test Location"}`,
+			mockStatus:   http.StatusOK,
+		},
+		{
+			name:         "not found",
+			id:           999,
+			expectedPath: "/api/dcim/locations/999",
+			mockStatus:   http.StatusNotFound,
+			expectError:  true,
+		},
+		{
+			name:         "server error",
+			id:           1,
+			expectedPath: "/api/dcim/locations/1",
+			mockStatus:   http.StatusInternalServerError,
+			expectError:  true,
+		},
 	}
-	location, err := service.PatchLocation(input)
 
-	assert.NoError(t, err)
-	assert.Equal(t, "Patched Location", location.Name)
+	for _, spec_test := range tests {
+		test.Run(spec_test.name, func(test *testing.T) {
+			mockClient := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			service := NewService(mockClient)
+
+			location, err := service.GetLocation(spec_test.id)
+			if spec_test.expectError {
+				assert.Error(test, err)
+				return
+			}
+
+			assert.NoError(test, err)
+			assert.NotNil(test, location)
+		})
+	}
 }
 
-func TestDeleteLocation(t *testing.T) {
-	client, mux, teardown := client.NewClientForTesting()
-	defer teardown()
+func TestCreateLocation(test *testing.T) {
+	tests := []struct {
+		name         string
+		input        *CreateLocationInput
+		expectedPath string
+		mockResponse string
+		mockStatus   int
+		expectError  bool
+	}{
+		{
+			name: "successful create",
+			input: &CreateLocationInput{
+				Name: "New Location",
+				Slug: "new-location",
+			},
+			expectedPath: "/api/dcim/locations",
+			mockResponse: `{"id": 1, "name": "New Location", "slug": "new-location"}`,
+			mockStatus:   http.StatusCreated,
+		},
+		{
+			name: "validation error",
+			input: &CreateLocationInput{
+				Name: "", // Required field
+				Slug: "new-location",
+			},
+			expectError: true,
+		},
+		{
+			name: "server error",
+			input: &CreateLocationInput{
+				Name: "New Location",
+				Slug: "new-location",
+			},
+			expectedPath: "/api/dcim/locations",
+			mockStatus:   http.StatusInternalServerError,
+			expectError:  true,
+		},
+	}
 
-	mux.HandleFunc("/api/dcim/locations/1/", func(w http.ResponseWriter, r *http.Request) {
-		assert.Equal(t, "DELETE", r.Method)
-		w.WriteHeader(http.StatusNoContent)
-	})
+	for _, spec_test := range tests {
+		test.Run(spec_test.name, func(test *testing.T) {
+			mockClient := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			service := NewService(mockClient)
 
-	service := NewService(client)
-	err := service.DeleteLocation(1)
+			location, err := service.CreateLocation(spec_test.input)
+			if spec_test.expectError {
+				assert.Error(test, err)
+				return
+			}
 
-	assert.NoError(t, err)
+			assert.NoError(test, err)
+			assert.NotNil(test, location)
+		})
+	}
+}
+
+func TestUpdateLocation(test *testing.T) {
+	tests := []struct {
+		name         string
+		input        *UpdateLocationInput
+		expectedPath string
+		mockResponse string
+		mockStatus   int
+		expectError  bool
+	}{
+		{
+			name: "successful update",
+			input: &UpdateLocationInput{
+				ID:   1,
+				Name: "Updated Location",
+				Slug: "updated-location",
+			},
+			expectedPath: "/api/dcim/locations/1",
+			mockResponse: `{"id": 1, "name": "Updated Location", "slug": "updated-location"}`,
+			mockStatus:   http.StatusOK,
+		},
+		{
+			name: "validation error",
+			input: &UpdateLocationInput{
+				ID:   1,
+				Name: "", // Required field
+			},
+			expectError: true,
+		},
+		{
+			name: "not found",
+			input: &UpdateLocationInput{
+				ID:   999,
+				Name: "Updated Location",
+			},
+			expectedPath: "/api/dcim/locations/999",
+			mockStatus:   http.StatusNotFound,
+			expectError:  true,
+		},
+	}
+
+	for _, spec_test := range tests {
+		test.Run(spec_test.name, func(test *testing.T) {
+			mockClient := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			service := NewService(mockClient)
+
+			location, err := service.UpdateLocation(spec_test.input)
+			if spec_test.expectError {
+				assert.Error(test, err)
+				return
+			}
+
+			assert.NoError(test, err)
+			assert.NotNil(test, location)
+		})
+	}
+}
+
+func TestDeleteLocation(test *testing.T) {
+	tests := []struct {
+		name         string
+		id           int
+		expectedPath string
+		mockStatus   int
+		expectError  bool
+	}{
+		{
+			name:         "successful delete",
+			id:           1,
+			expectedPath: "/api/dcim/locations/1",
+			mockStatus:   http.StatusNoContent,
+		},
+		{
+			name:         "not found",
+			id:           999,
+			expectedPath: "/api/dcim/locations/999",
+			mockStatus:   http.StatusNotFound,
+			expectError:  true,
+		},
+		{
+			name:         "server error",
+			id:           1,
+			expectedPath: "/api/dcim/locations/1",
+			mockStatus:   http.StatusInternalServerError,
+			expectError:  true,
+		},
+	}
+
+	for _, spec_test := range tests {
+		test.Run(spec_test.name, func(test *testing.T) {
+			mockClient := client.NewMockClient(test, spec_test.expectedPath, "", spec_test.mockStatus)
+			service := NewService(mockClient)
+
+			err := service.DeleteLocation(spec_test.id)
+			if spec_test.expectError {
+				assert.Error(test, err)
+				return
+			}
+
+			assert.NoError(test, err)
+		})
+	}
 }

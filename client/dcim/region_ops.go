@@ -3,12 +3,14 @@ package dcim
 import (
 	"fmt"
 	"net/http"
+
+	"github.com/zeddD1abl0/go-netbox-client/client"
 )
 
-// ListRegions lists all regions matching the input criteria
+// ListRegions lists all regions
 func (service *Service) ListRegions(input *ListRegionsInput) ([]Region, error) {
-	path := service.buildPath("dcim", "regions")
-	
+	path := service.BuildPath("dcim", "regions")
+
 	// Build query parameters
 	params := map[string]string{}
 	if input.Name != "" {
@@ -28,38 +30,39 @@ func (service *Service) ListRegions(input *ListRegionsInput) ([]Region, error) {
 	}
 
 	// Make request
-	var response struct {
-		Count    int      `json:"count"`
-		Next     *string  `json:"next"`
-		Previous *string  `json:"previous"`
-		Results  []Region `json:"results"`
-	}
-
-	resp, err := service.client.httpClient.R().
+	var response client.Response
+	response.Results = make([]any, 0)
+	_, err := service.Client.R().
 		SetQueryParams(params).
 		SetResult(&response).
 		Get(path)
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("error listing regions: %w", err)
 	}
 
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+	// Convert results to []Region
+	regions := make([]Region, len(response.Results))
+	for i, result := range response.Results {
+		region, ok := result.(Region)
+		if !ok {
+			return nil, fmt.Errorf("unexpected result type at index %d", i)
+		}
+		regions[i] = region
 	}
 
-	return response.Results, nil
+	return regions, nil
 }
 
 // GetRegion retrieves a single region by ID
 func (service *Service) GetRegion(id int) (*Region, error) {
-	path := service.buildPath("dcim", "regions", fmt.Sprintf("%d", id))
-	
+	path := service.BuildPath("dcim", "regions", fmt.Sprintf("%d", id))
+
 	var region Region
-	resp, err := service.client.httpClient.R().
+	resp, err := service.Client.R().
 		SetResult(&region).
 		Get(path)
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("error getting region: %w", err)
 	}
@@ -81,14 +84,14 @@ func (service *Service) CreateRegion(input *CreateRegionInput) (*Region, error) 
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	path := service.buildPath("dcim", "regions")
-	
+	path := service.BuildPath("dcim", "regions")
+
 	var region Region
-	resp, err := service.client.httpClient.R().
+	resp, err := service.Client.R().
 		SetBody(input).
 		SetResult(&region).
 		Post(path)
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("error creating region: %w", err)
 	}
@@ -106,14 +109,14 @@ func (service *Service) UpdateRegion(input *UpdateRegionInput) (*Region, error) 
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	path := service.buildPath("dcim", "regions", fmt.Sprintf("%d", input.ID))
-	
+	path := service.BuildPath("dcim", "regions", fmt.Sprintf("%d", input.ID))
+
 	var region Region
-	resp, err := service.client.httpClient.R().
+	resp, err := service.Client.R().
 		SetBody(input).
 		SetResult(&region).
 		Put(path)
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("error updating region: %w", err)
 	}
@@ -129,20 +132,20 @@ func (service *Service) UpdateRegion(input *UpdateRegionInput) (*Region, error) 
 	return &region, nil
 }
 
-// PatchRegion partially updates an existing region
+// PatchRegion patches an existing region
 func (service *Service) PatchRegion(input *PatchRegionInput) (*Region, error) {
 	if err := input.Validate(); err != nil {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	path := service.buildPath("dcim", "regions", fmt.Sprintf("%d", input.ID))
-	
+	path := service.BuildPath("dcim", "regions", fmt.Sprintf("%d", input.ID))
+
 	var region Region
-	resp, err := service.client.httpClient.R().
+	resp, err := service.Client.R().
 		SetBody(input).
 		SetResult(&region).
 		Patch(path)
-	
+
 	if err != nil {
 		return nil, fmt.Errorf("error patching region: %w", err)
 	}
@@ -158,34 +161,13 @@ func (service *Service) PatchRegion(input *PatchRegionInput) (*Region, error) {
 	return &region, nil
 }
 
-// PutRegion creates or updates a region
-func (service *Service) PutRegion(input *UpdateRegionInput) (*Region, error) {
-	if err := input.Validate(); err != nil {
-		return nil, err
-	}
-
-	req, err := service.client.NewRequest("PUT", fmt.Sprintf("dcim/regions/%d/", input.ID), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Body = input
-	region := new(Region)
-	err = service.client.Do(req, region)
-	if err != nil {
-		return nil, err
-	}
-
-	return region, nil
-}
-
 // DeleteRegion deletes a region
 func (service *Service) DeleteRegion(id int) error {
-	path := service.buildPath("dcim", "regions", fmt.Sprintf("%d", id))
-	
-	resp, err := service.client.httpClient.R().
+	path := service.BuildPath("dcim", "regions", fmt.Sprintf("%d", id))
+
+	resp, err := service.Client.R().
 		Delete(path)
-	
+
 	if err != nil {
 		return fmt.Errorf("error deleting region: %w", err)
 	}

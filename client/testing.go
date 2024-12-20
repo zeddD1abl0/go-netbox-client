@@ -48,6 +48,29 @@ func newTestClient(t *testing.T, ts *testServer) *Client {
 	return client
 }
 
+// newMockClient creates a new client for testing with a specific path and response
+func newMockClient(t *testing.T, expectedPath, mockResponse string, mockStatus int) *Client {
+	ts := newTestServer(t, mockStatus, nil)
+	ts.Server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != expectedPath {
+			t.Errorf("Expected path %s, got %s", expectedPath, r.URL.Path)
+		}
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(mockStatus)
+		if mockResponse != "" {
+			fmt.Fprintln(w, mockResponse)
+		}
+	}))
+
+	return newTestClient(t, ts)
+}
+
+// NewClientForTesting creates a new client for testing
+func NewClientForTesting(t *testing.T) *Client {
+	ts := newTestServer(t, http.StatusOK, nil)
+	return newTestClient(t, ts)
+}
+
 // mockPaginatedResponse creates a mock paginated response
 func mockPaginatedResponse(items interface{}) map[string]interface{} {
 	return map[string]interface{}{

@@ -9,9 +9,14 @@ const (
 	defaultAPIVersion = "4.0"
 )
 
+// HTTPClient represents an HTTP client interface
+type HTTPClient interface {
+	R() *resty.Request
+}
+
 // Client represents a Netbox API client
 type Client struct {
-	httpClient *resty.Client
+	httpClient HTTPClient
 	baseURL    string
 	token      string
 }
@@ -31,9 +36,22 @@ func NewClient(baseURL, token string) (*Client, error) {
 		token:      token,
 	}
 
-	client.httpClient.SetHeader("Authorization", fmt.Sprintf("Token %s", token))
-	client.httpClient.SetHeader("Accept", "application/json")
-	client.httpClient.SetHeader("Content-Type", "application/json")
+	client.httpClient.(*resty.Client).SetHeader("Authorization", fmt.Sprintf("Token %s", token))
+	client.httpClient.(*resty.Client).SetHeader("Accept", "application/json")
+	client.httpClient.(*resty.Client).SetHeader("Content-Type", "application/json")
 
 	return client, nil
+}
+
+// R returns a new request object
+func (c *Client) R() *resty.Request {
+	return c.httpClient.R()
+}
+
+// Response represents a paginated response from the Netbox API
+type Response struct {
+	Count    int   `json:"count"`
+	Next     *int  `json:"next"`
+	Previous *int  `json:"previous"`
+	Results  []any `json:"results"`
 }

@@ -2,156 +2,215 @@ package dcim
 
 import (
 	"fmt"
-	"net/url"
-	"strconv"
+	"net/http"
 
 	"github.com/zeddD1abl0/go-netbox-client/client"
 )
 
 // ListLocations lists all locations
 func (s *Service) ListLocations(input *ListLocationsInput) ([]Location, error) {
-	params := url.Values{}
-	if input != nil {
-		if input.Name != "" {
-			params.Add("name", input.Name)
-		}
-		if input.Site != "" {
-			params.Add("site", input.Site)
-		}
-		if input.Parent != "" {
-			params.Add("parent", input.Parent)
-		}
-		if input.Tag != "" {
-			params.Add("tag", input.Tag)
-		}
-		if input.Limit != 0 {
-			params.Add("limit", strconv.Itoa(input.Limit))
-		}
-		if input.Offset != 0 {
-			params.Add("offset", strconv.Itoa(input.Offset))
-		}
+	path := s.BuildPath("dcim", "locations")
+
+	// Build query parameters
+	params := map[string]string{}
+	if input.Name != "" {
+		params["name"] = input.Name
+	}
+	if input.Site != "" {
+		params["site"] = input.Site
+	}
+	if input.Parent != "" {
+		params["parent"] = input.Parent
+	}
+	if input.Tag != "" {
+		params["tag"] = input.Tag
+	}
+	if input.Limit > 0 {
+		params["limit"] = fmt.Sprintf("%d", input.Limit)
+	}
+	if input.Offset > 0 {
+		params["offset"] = fmt.Sprintf("%d", input.Offset)
 	}
 
-	req, err := s.client.NewRequest("GET", "dcim/locations/", params)
+	// Make request
+	var response client.Response
+	response.Results = make([]any, 0)
+	_, err := s.Client.R().
+		SetQueryParams(params).
+		SetResult(&response).
+		Get(path)
+
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error listing locations: %w", err)
 	}
 
-	locations := new(client.Response[[]Location])
-	err = s.client.Do(req, locations)
-	if err != nil {
-		return nil, err
+	// Convert results to []Location
+	locations := make([]Location, len(response.Results))
+	for i, result := range response.Results {
+		location, ok := result.(Location)
+		if !ok {
+			return nil, fmt.Errorf("unexpected result type at index %d", i)
+		}
+		locations[i] = location
 	}
 
-	return locations.Results, nil
+	return locations, nil
 }
 
-// GetLocation gets a location by ID
+// GetLocation retrieves a single location by ID
 func (s *Service) GetLocation(id int) (*Location, error) {
-	req, err := s.client.NewRequest("GET", fmt.Sprintf("dcim/locations/%d/", id), nil)
+	path := s.BuildPath("dcim", "locations", fmt.Sprintf("%d", id))
+
+	var location Location
+	resp, err := s.Client.R().
+		SetResult(&location).
+		Get(path)
+
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error getting location: %w", err)
 	}
 
-	location := new(Location)
-	err = s.client.Do(req, location)
-	if err != nil {
-		return nil, err
+	if resp.StatusCode() == http.StatusNotFound {
+		return nil, fmt.Errorf("location not found")
 	}
 
-	return location, nil
+	if resp.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+	}
+
+	return &location, nil
 }
 
 // CreateLocation creates a new location
 func (s *Service) CreateLocation(input *CreateLocationInput) (*Location, error) {
 	if err := input.Validate(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	req, err := s.client.NewRequest("POST", "dcim/locations/", nil)
+	path := s.BuildPath("dcim", "locations")
+
+	var location Location
+	resp, err := s.Client.R().
+		SetBody(input).
+		SetResult(&location).
+		Post(path)
+
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error creating location: %w", err)
 	}
 
-	req.Body = input
-	location := new(Location)
-	err = s.client.Do(req, location)
-	if err != nil {
-		return nil, err
+	if resp.StatusCode() != http.StatusCreated {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
 	}
 
-	return location, nil
+	return &location, nil
 }
 
-// UpdateLocation updates a location
+// UpdateLocation updates an existing location
 func (s *Service) UpdateLocation(input *UpdateLocationInput) (*Location, error) {
 	if err := input.Validate(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	req, err := s.client.NewRequest("PUT", fmt.Sprintf("dcim/locations/%d/", input.ID), nil)
+	path := s.BuildPath("dcim", "locations", fmt.Sprintf("%d", input.ID))
+
+	var location Location
+	resp, err := s.Client.R().
+		SetBody(input).
+		SetResult(&location).
+		Put(path)
+
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error updating location: %w", err)
 	}
 
-	req.Body = input
-	location := new(Location)
-	err = s.client.Do(req, location)
+	if resp.StatusCode() == http.StatusNotFound {
+		return nil, fmt.Errorf("location not found")
+	}
+
+	if resp.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+	}
+
+	return &location, nil
+}
+
+// DeleteLocation deletes a location
+func (s *Service) DeleteLocation(id int) error {
+	path := s.BuildPath("dcim", "locations", fmt.Sprintf("%d", id))
+
+	resp, err := s.Client.R().
+		Delete(path)
+
 	if err != nil {
-		return nil, err
+		return fmt.Errorf("error deleting location: %w", err)
 	}
 
-	return location, nil
+	if resp.StatusCode() == http.StatusNotFound {
+		return fmt.Errorf("location not found")
+	}
+
+	if resp.StatusCode() != http.StatusNoContent {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+	}
+
+	return nil
 }
 
 // PutLocation creates or updates a location
 func (s *Service) PutLocation(input *UpdateLocationInput) (*Location, error) {
 	if err := input.Validate(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	req, err := s.client.NewRequest("PUT", fmt.Sprintf("dcim/locations/%d/", input.ID), nil)
+	path := s.BuildPath("dcim", "locations", fmt.Sprintf("%d", input.ID))
+
+	var location Location
+	resp, err := s.Client.R().
+		SetBody(input).
+		SetResult(&location).
+		Put(path)
+
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error updating location: %w", err)
 	}
 
-	req.Body = input
-	location := new(Location)
-	err = s.client.Do(req, location)
-	if err != nil {
-		return nil, err
+	if resp.StatusCode() == http.StatusNotFound {
+		return nil, fmt.Errorf("location not found")
 	}
 
-	return location, nil
+	if resp.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+	}
+
+	return &location, nil
 }
 
 // PatchLocation patches a location
 func (s *Service) PatchLocation(input *PatchLocationInput) (*Location, error) {
 	if err := input.Validate(); err != nil {
-		return nil, err
+		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	req, err := s.client.NewRequest("PATCH", fmt.Sprintf("dcim/locations/%d/", input.ID), nil)
+	path := s.BuildPath("dcim", "locations", fmt.Sprintf("%d", input.ID))
+
+	var location Location
+	resp, err := s.Client.R().
+		SetBody(input).
+		SetResult(&location).
+		Patch(path)
+
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error patching location: %w", err)
 	}
 
-	req.Body = input
-	location := new(Location)
-	err = s.client.Do(req, location)
-	if err != nil {
-		return nil, err
+	if resp.StatusCode() == http.StatusNotFound {
+		return nil, fmt.Errorf("location not found")
 	}
 
-	return location, nil
-}
-
-// DeleteLocation deletes a location
-func (s *Service) DeleteLocation(id int) error {
-	req, err := s.client.NewRequest("DELETE", fmt.Sprintf("dcim/locations/%d/", id), nil)
-	if err != nil {
-		return err
+	if resp.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
 	}
 
-	return s.client.Do(req, nil)
+	return &location, nil
 }

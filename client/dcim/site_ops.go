@@ -7,7 +7,7 @@ import (
 
 // ListSites lists all sites matching the input criteria
 func (service *Service) ListSites(input *ListSitesInput) ([]Site, error) {
-	path := service.buildPath("dcim", "sites")
+	path := service.BuildPath("api", "dcim", "sites")
 	
 	// Build query parameters
 	params := map[string]string{}
@@ -38,7 +38,7 @@ func (service *Service) ListSites(input *ListSitesInput) ([]Site, error) {
 		Results  []Site  `json:"results"`
 	}
 
-	resp, err := service.client.httpClient.R().
+	resp, err := service.Client.R().
 		SetQueryParams(params).
 		SetResult(&response).
 		Get(path)
@@ -56,10 +56,10 @@ func (service *Service) ListSites(input *ListSitesInput) ([]Site, error) {
 
 // GetSite retrieves a single site by ID
 func (service *Service) GetSite(id int) (*Site, error) {
-	path := service.buildPath("dcim", "sites", fmt.Sprintf("%d", id))
+	path := service.BuildPath("api", "dcim", "sites", fmt.Sprintf("%d", id))
 	
 	var site Site
-	resp, err := service.client.httpClient.R().
+	resp, err := service.Client.R().
 		SetResult(&site).
 		Get(path)
 	
@@ -84,10 +84,10 @@ func (service *Service) CreateSite(input *CreateSiteInput) (*Site, error) {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	path := service.buildPath("dcim", "sites")
+	path := service.BuildPath("api", "dcim", "sites")
 	
 	var site Site
-	resp, err := service.client.httpClient.R().
+	resp, err := service.Client.R().
 		SetBody(input).
 		SetResult(&site).
 		Post(path)
@@ -109,24 +109,20 @@ func (service *Service) UpdateSite(input *UpdateSiteInput) (*Site, error) {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	path := service.buildPath("dcim", "sites", fmt.Sprintf("%d", input.ID))
+	path := service.BuildPath("api", "dcim", "sites", fmt.Sprintf("%d", input.ID))
 	
 	var site Site
-	resp, err := service.client.httpClient.R().
+	resp, err := service.Client.R().
 		SetBody(input).
 		SetResult(&site).
 		Put(path)
 	
 	if err != nil {
-		return nil, fmt.Errorf("error updating site: %w", err)
+		return nil, err
 	}
 
-	if resp.StatusCode() == http.StatusNotFound {
-		return nil, fmt.Errorf("site not found")
-	}
-
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+	if resp.StatusCode() >= 400 {
+		return nil, fmt.Errorf("error updating site: %s", resp.Status())
 	}
 
 	return &site, nil
@@ -138,10 +134,10 @@ func (service *Service) PatchSite(input *PatchSiteInput) (*Site, error) {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	path := service.buildPath("dcim", "sites", fmt.Sprintf("%d", input.ID))
+	path := service.BuildPath("api", "dcim", "sites", fmt.Sprintf("%d", input.ID))
 	
 	var site Site
-	resp, err := service.client.httpClient.R().
+	resp, err := service.Client.R().
 		SetBody(input).
 		SetResult(&site).
 		Patch(path)
@@ -161,32 +157,11 @@ func (service *Service) PatchSite(input *PatchSiteInput) (*Site, error) {
 	return &site, nil
 }
 
-// PutSite creates or updates a site
-func (service *Service) PutSite(input *UpdateSiteInput) (*Site, error) {
-	if err := input.Validate(); err != nil {
-		return nil, err
-	}
-
-	req, err := service.client.NewRequest("PUT", fmt.Sprintf("dcim/sites/%d/", input.ID), nil)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Body = input
-	site := new(Site)
-	err = service.client.Do(req, site)
-	if err != nil {
-		return nil, err
-	}
-
-	return site, nil
-}
-
 // DeleteSite deletes a site
 func (service *Service) DeleteSite(id int) error {
-	path := service.buildPath("dcim", "sites", fmt.Sprintf("%d", id))
+	path := service.BuildPath("api", "dcim", "sites", fmt.Sprintf("%d", id))
 	
-	resp, err := service.client.httpClient.R().
+	resp, err := service.Client.R().
 		Delete(path)
 	
 	if err != nil {

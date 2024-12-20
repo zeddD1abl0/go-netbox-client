@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/zeddD1abl0/go-netbox-client/client"
 )
 
 func TestListRegions(test *testing.T) {
@@ -54,7 +55,7 @@ func TestListRegions(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := newMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			client := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
 			service := NewService(client)
 
 			regions, err := service.ListRegions(spec_test.input)
@@ -103,7 +104,7 @@ func TestGetRegion(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := newMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			client := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
 			service := NewService(client)
 
 			region, err := service.GetRegion(spec_test.id)
@@ -159,7 +160,7 @@ func TestCreateRegion(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := newMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			client := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
 			service := NewService(client)
 
 			region, err := service.CreateRegion(spec_test.input)
@@ -218,7 +219,7 @@ func TestUpdateRegion(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := newMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			client := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
 			service := NewService(client)
 
 			region, err := service.UpdateRegion(spec_test.input)
@@ -264,15 +265,15 @@ func TestPatchRegion(test *testing.T) {
 			expectError:  true,
 		},
 		{
-			name: "validation error",
-			input: &PatchRegionInput{}, // Missing ID
+			name:        "validation error",
+			input:       &PatchRegionInput{}, // Missing ID
 			expectError: true,
 		},
 	}
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := newMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
+			client := client.NewMockClient(test, spec_test.expectedPath, spec_test.mockResponse, spec_test.mockStatus)
 			service := NewService(client)
 
 			region, err := service.PatchRegion(spec_test.input)
@@ -319,7 +320,7 @@ func TestDeleteRegion(test *testing.T) {
 
 	for _, spec_test := range tests {
 		test.Run(spec_test.name, func(test *testing.T) {
-			client := newMockClient(test, spec_test.expectedPath, "", spec_test.mockStatus)
+			client := client.NewMockClient(test, spec_test.expectedPath, "", spec_test.mockStatus)
 			service := NewService(client)
 
 			err := service.DeleteRegion(spec_test.id)
