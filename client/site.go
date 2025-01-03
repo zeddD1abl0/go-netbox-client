@@ -213,3 +213,28 @@ func (input *PatchSiteInput) Validate() error {
 
 	return nil
 }
+
+// ListSitesInput represents the input for listing sites
+type ListSitesInput struct {
+	Name   string `json:"name,omitempty"`   // Filter by name (case-insensitive partial match)
+	Region string `json:"region,omitempty"` // Filter by region ID
+	Status string `json:"status,omitempty"` // Filter by status
+	Tag    string `json:"tag,omitempty"`    // Filter by tag
+	Limit  int    `json:"limit,omitempty"`  // Number of results to return per page
+	Offset int    `json:"offset,omitempty"` // The initial index from which to return the results
+}
+
+// Validate validates the ListSitesInput
+func (input *ListSitesInput) Validate() error {
+	return validation.ValidateStruct(input,
+		validation.Field(&input.Status, validation.In(
+			SiteStatusActive,
+			SiteStatusPlanned,
+			SiteStatusStaging,
+			SiteStatusDecommissioning,
+			SiteStatusRetired,
+		).Optional()),
+		validation.Field(&input.Limit, validation.Min(0)),
+		validation.Field(&input.Offset, validation.Min(0)),
+	)
+}
