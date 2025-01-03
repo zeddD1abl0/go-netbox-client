@@ -6,73 +6,73 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/zeddD1abl0/go-netbox-client/client/dcim"
+	"github.com/zeddD1abl0/go-netbox-client/client"
 	"github.com/zeddD1abl0/go-netbox-client/models"
 )
 
 func TestSiteGroupIntegration(t *testing.T) {
-	client := setupTestClient(t)
+	c := setupTestClient(t)
 	cleanup := newCleanupList(t)
 	defer cleanup.runAll()
 
 	t.Run("Hierarchical site groups", func(t *testing.T) {
 		// Create parent site group
-		parentInput := &dcim.CreateSiteGroupInput{
+		parentInput := &client.CreateSiteGroupInput{
 			Name:        "Parent Site Group",
 			Slug:        "parent-site-group",
 			Description: "Parent site group for testing",
 		}
-		parent, err := client.DCIM().CreateSiteGroup(parentInput)
+		parent, err := c.CreateSiteGroup(parentInput)
 		require.NoError(t, err)
 		require.NotNil(t, parent)
 		cleanup.add(func() error {
-			return client.DCIM().DeleteSiteGroup(parent.ID)
+			return c.DeleteSiteGroup(parent.ID)
 		})
 
 		// Create child site groups
-		childGroups := make([]*dcim.SiteGroup, 3)
+		childGroups := make([]*client.SiteGroup, 3)
 		for i := 0; i < 3; i++ {
-			childInput := &dcim.CreateSiteGroupInput{
+			childInput := &client.CreateSiteGroupInput{
 				Name:        fmt.Sprintf("Child Site Group %d", i+1),
 				Slug:        fmt.Sprintf("child-site-group-%d", i+1),
 				Description: fmt.Sprintf("Child site group %d of Parent Site Group", i+1),
 				Parent:      parent.ID,
 			}
-			child, err := client.DCIM().CreateSiteGroup(childInput)
+			child, err := c.CreateSiteGroup(childInput)
 			require.NoError(t, err)
 			require.NotNil(t, child)
 			childGroups[i] = child
 			cleanup.add(func() error {
-				return client.DCIM().DeleteSiteGroup(child.ID)
+				return c.DeleteSiteGroup(child.ID)
 			})
 		}
 
 		// List and verify hierarchy
 		fmt.Println(parent.ID)
-		listInput := &dcim.ListSiteGroupsInput{
+		listInput := &client.ListSiteGroupsInput{
 			Parent: fmt.Sprintf("%d", parent.ID),
 		}
-		list, err := client.DCIM().ListSiteGroups(listInput)
+		list, err := c.ListSiteGroups(listInput)
 		require.NoError(t, err)
 		require.NotNil(t, list)
 		assert.Equal(t, 3, len(list))
 
 		// Update a child site group
-		updateInput := &dcim.UpdateSiteGroupInput{
+		updateInput := &client.UpdateSiteGroupInput{
 			ID:          childGroups[0].ID,
 			Name:        "Updated Child Site Group",
 			Slug:        "updated-child-site-group",
 			Description: "Updated child site group description",
 			Parent:      parent.ID,
 		}
-		updated, err := client.DCIM().UpdateSiteGroup(updateInput)
+		updated, err := c.UpdateSiteGroup(updateInput)
 		require.NoError(t, err)
 		require.NotNil(t, updated)
 		assert.Equal(t, updateInput.Name, updated.Name)
 		assert.Equal(t, updateInput.Description, updated.Description)
 
 		// Verify parent-child relationship
-		retrieved, err := client.DCIM().GetSiteGroup(childGroups[0].ID)
+		retrieved, err := c.GetSiteGroup(childGroups[0].ID)
 		require.NoError(t, err)
 		require.NotNil(t, retrieved)
 		require.NotNil(t, retrieved.Parent)
@@ -109,7 +109,7 @@ func TestSiteGroupIntegration(t *testing.T) {
 
 		// Create the site groups
 		for _, g := range groups {
-			input := &dcim.CreateSiteGroupInput{
+			input := &client.CreateSiteGroupInput{
 				Name:        g.name,
 				Slug:        g.slug,
 				Description: g.description,
@@ -122,24 +122,24 @@ func TestSiteGroupIntegration(t *testing.T) {
 					Color: "0xFF00FF",
 				}
 			}
-			created, err := client.DCIM().CreateSiteGroup(input)
+			created, err := c.CreateSiteGroup(input)
 			require.NoError(t, err)
 			require.NotNil(t, created)
 			cleanup.add(func() error {
-				return client.DCIM().DeleteSiteGroup(created.ID)
+				return c.DeleteSiteGroup(created.ID)
 			})
 		}
 
 		// Test different filter combinations
 		tests := []struct {
 			name          string
-			input         *dcim.ListSiteGroupsInput
+			input         *client.ListSiteGroupsInput
 			expectedCount int
 			expectedName  string
 		}{
 			{
 				name: "Filter by tag",
-				input: &dcim.ListSiteGroupsInput{
+				input: &client.ListSiteGroupsInput{
 					Tag: "prod",
 				},
 				expectedCount: 1,
@@ -147,7 +147,7 @@ func TestSiteGroupIntegration(t *testing.T) {
 			},
 			{
 				name: "Filter by name contains",
-				input: &dcim.ListSiteGroupsInput{
+				input: &client.ListSiteGroupsInput{
 					Name: "Staging",
 				},
 				expectedCount: 1,
@@ -155,7 +155,7 @@ func TestSiteGroupIntegration(t *testing.T) {
 			},
 			{
 				name: "Filter by multiple tags",
-				input: &dcim.ListSiteGroupsInput{
+				input: &client.ListSiteGroupsInput{
 					Tag: "test",
 				},
 				expectedCount: 2,
@@ -164,7 +164,7 @@ func TestSiteGroupIntegration(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				list, err := client.DCIM().ListSiteGroups(tt.input)
+				list, err := c.ListSiteGroups(tt.input)
 				require.NoError(t, err)
 				require.NotNil(t, list)
 				assert.Equal(t, tt.expectedCount, len(list))

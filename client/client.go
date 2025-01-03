@@ -91,6 +91,15 @@ func (c *Client) R() *resty.Request {
 	return c.httpClient.R()
 }
 
+// BuildPath builds a full API path from the given parts
+func (c *Client) BuildPath(parts ...string) string {
+	path := c.baseURL
+	for _, part := range parts {
+		path += part + "/"
+	}
+	return path
+}
+
 // Response represents a paginated response from the Netbox API
 type Response struct {
 	Count    int   `json:"count"`

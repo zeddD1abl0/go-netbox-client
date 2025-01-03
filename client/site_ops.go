@@ -6,8 +6,8 @@ import (
 )
 
 // ListSites lists all sites matching the input criteria
-func (service *Service) ListSites(input *ListSitesInput) ([]Site, error) {
-	path := service.BuildPath("api", "dcim", "sites")
+func (c *Client) ListSites(input *ListSitesInput) ([]Site, error) {
+	path := c.BuildPath("dcim", "sites")
 
 	// Build query parameters
 	params := map[string]string{}
@@ -15,7 +15,7 @@ func (service *Service) ListSites(input *ListSitesInput) ([]Site, error) {
 		params["name__ic"] = input.Name
 	}
 	if input.Region != "" {
-		params["region_id"] = input.Region
+		params["region"] = input.Region
 	}
 	if input.Status != "" {
 		params["status"] = input.Status
@@ -33,7 +33,7 @@ func (service *Service) ListSites(input *ListSitesInput) ([]Site, error) {
 	// Make request
 	var response Response
 	response.Results = make([]any, 0)
-	_, err := service.Client.R().
+	_, err := c.R().
 		SetQueryParams(params).
 		SetResult(&response).
 		Get(path)
@@ -52,48 +52,9 @@ func (service *Service) ListSites(input *ListSitesInput) ([]Site, error) {
 
 		// Create a new Site
 		var site Site
-
-		// Map basic fields
-		if id, ok := resultMap["id"].(float64); ok {
-			site.ID = int(id)
-		}
-		if url, ok := resultMap["url"].(string); ok {
-			site.URL = url
-		}
-		if name, ok := resultMap["name"].(string); ok {
-			site.Name = name
-		}
-		if slug, ok := resultMap["slug"].(string); ok {
-			site.Slug = slug
-		}
-		if description, ok := resultMap["description"].(string); ok {
-			site.Description = description
-		}
-		if created, ok := resultMap["created"].(string); ok {
-			site.Created = created
-		}
-		if lastUpdated, ok := resultMap["last_updated"].(string); ok {
-			site.LastUpdated = lastUpdated
-		}
-		if status, ok := resultMap["status"].(map[string]any); ok {
-			if value, ok := status["value"].(string); ok {
-				site.Status = &Status{Value: value, Label: value}
-			}
-		}
-
-		// Map region if present
-		if regionMap, ok := resultMap["region"].(map[string]any); ok {
-			region := &Region{}
-			if regionID, ok := regionMap["id"].(float64); ok {
-				region.ID = int(regionID)
-			}
-			if regionName, ok := regionMap["name"].(string); ok {
-				region.Name = regionName
-			}
-			if regionSlug, ok := regionMap["slug"].(string); ok {
-				region.Slug = regionSlug
-			}
-			site.Region = region
+		err := convertMapToStruct(resultMap, &site)
+		if err != nil {
+			return nil, fmt.Errorf("error converting map to struct at index %d: %w", i, err)
 		}
 
 		sites[i] = site
@@ -103,11 +64,11 @@ func (service *Service) ListSites(input *ListSitesInput) ([]Site, error) {
 }
 
 // GetSite retrieves a single site by ID
-func (service *Service) GetSite(id int) (*Site, error) {
-	path := service.BuildPath("api", "dcim", "sites", fmt.Sprintf("%d", id))
+func (c *Client) GetSite(id int) (*Site, error) {
+	path := c.BuildPath("dcim", "sites", fmt.Sprintf("%d", id))
 
 	var site Site
-	resp, err := service.Client.R().
+	resp, err := c.R().
 		SetResult(&site).
 		Get(path)
 
@@ -119,23 +80,15 @@ func (service *Service) GetSite(id int) (*Site, error) {
 		return nil, fmt.Errorf("site not found")
 	}
 
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
-	}
-
 	return &site, nil
 }
 
 // CreateSite creates a new site
-func (service *Service) CreateSite(input *CreateSiteInput) (*Site, error) {
-	if err := input.Validate(); err != nil {
-		return nil, fmt.Errorf("validation failed: %w", err)
-	}
-
-	path := service.BuildPath("api", "dcim", "sites")
+func (c *Client) CreateSite(input *CreateSiteInput) (*Site, error) {
+	path := c.BuildPath("dcim", "sites")
 
 	var site Site
-	resp, err := service.Client.R().
+	resp, err := c.R().
 		SetBody(input).
 		SetResult(&site).
 		Post(path)
@@ -152,40 +105,40 @@ func (service *Service) CreateSite(input *CreateSiteInput) (*Site, error) {
 }
 
 // UpdateSite updates an existing site
-func (service *Service) UpdateSite(input *UpdateSiteInput) (*Site, error) {
-	if err := input.Validate(); err != nil {
-		return nil, fmt.Errorf("validation failed: %w", err)
-	}
-
-	path := service.BuildPath("api", "dcim", "sites", fmt.Sprintf("%d", input.ID))
+func (c *Client) UpdateSite(input *UpdateSiteInput) (*Site, error) {
+	path := c.BuildPath("dcim", "sites", fmt.Sprintf("%d", input.ID))
 
 	var site Site
-	resp, err := service.Client.R().
+	resp, err := c.R().
 		SetBody(input).
 		SetResult(&site).
 		Put(path)
 
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error updating site: %w", err)
 	}
 
-	if resp.StatusCode() >= 400 {
-		return nil, fmt.Errorf("error updating site: %s", resp.Status())
+	if resp.StatusCode() == http.StatusNotFound {
+		return nil, fmt.Errorf("site not found")
+	}
+
+	if resp.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
 	}
 
 	return &site, nil
 }
 
-// PatchSite partially updates an existing site
-func (service *Service) PatchSite(input *PatchSiteInput) (*Site, error) {
-	if err := input.Validate(); err != nil {
-		return nil, fmt.Errorf("validation failed: %w", err)
+// PatchSite patches an existing site
+func (c *Client) PatchSite(input *PatchSiteInput) (*Site, error) {
+	if input.ID == nil {
+		return nil, fmt.Errorf("site ID is required")
 	}
 
-	path := service.BuildPath("api", "dcim", "sites", fmt.Sprintf("%d", input.ID))
+	path := c.BuildPath("dcim", "sites", fmt.Sprintf("%d", *input.ID))
 
 	var site Site
-	resp, err := service.Client.R().
+	resp, err := c.R().
 		SetBody(input).
 		SetResult(&site).
 		Patch(path)
@@ -206,10 +159,10 @@ func (service *Service) PatchSite(input *PatchSiteInput) (*Site, error) {
 }
 
 // DeleteSite deletes a site
-func (service *Service) DeleteSite(id int) error {
-	path := service.BuildPath("api", "dcim", "sites", fmt.Sprintf("%d", id))
+func (c *Client) DeleteSite(id int) error {
+	path := c.BuildPath("dcim", "sites", fmt.Sprintf("%d", id))
 
-	resp, err := service.Client.R().
+	resp, err := c.R().
 		Delete(path)
 
 	if err != nil {

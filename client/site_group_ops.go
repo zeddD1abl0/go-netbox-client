@@ -5,9 +5,9 @@ import (
 	"net/http"
 )
 
-// ListSiteGroups lists all site groups matching the input criteria
-func (service *Service) ListSiteGroups(input *ListSiteGroupsInput) ([]SiteGroup, error) {
-	path := service.BuildPath("dcim", "site-groups")
+// ListSiteGroups lists all site groups
+func (c *Client) ListSiteGroups(input *ListSiteGroupsInput) ([]SiteGroup, error) {
+	path := c.BuildPath("dcim", "site-groups")
 
 	// Build query parameters
 	params := map[string]string{}
@@ -15,7 +15,7 @@ func (service *Service) ListSiteGroups(input *ListSiteGroupsInput) ([]SiteGroup,
 		params["name__ic"] = input.Name
 	}
 	if input.Parent != "" {
-		params["parent_id"] = input.Parent
+		params["parent"] = input.Parent
 	}
 	if input.Tag != "" {
 		params["tag"] = input.Tag
@@ -30,7 +30,7 @@ func (service *Service) ListSiteGroups(input *ListSiteGroupsInput) ([]SiteGroup,
 	// Make request
 	var response Response
 	response.Results = make([]any, 0)
-	_, err := service.Client.R().
+	_, err := c.R().
 		SetQueryParams(params).
 		SetResult(&response).
 		Get(path)
@@ -49,43 +49,9 @@ func (service *Service) ListSiteGroups(input *ListSiteGroupsInput) ([]SiteGroup,
 
 		// Create a new SiteGroup
 		var siteGroup SiteGroup
-
-		// Map basic fields
-		if id, ok := resultMap["id"].(float64); ok {
-			siteGroup.ID = int(id)
-		}
-		if url, ok := resultMap["url"].(string); ok {
-			siteGroup.URL = url
-		}
-		if name, ok := resultMap["name"].(string); ok {
-			siteGroup.Name = name
-		}
-		if slug, ok := resultMap["slug"].(string); ok {
-			siteGroup.Slug = slug
-		}
-		if description, ok := resultMap["description"].(string); ok {
-			siteGroup.Description = description
-		}
-		if created, ok := resultMap["created"].(string); ok {
-			siteGroup.Created = created
-		}
-		if lastUpdated, ok := resultMap["last_updated"].(string); ok {
-			siteGroup.LastUpdated = lastUpdated
-		}
-
-		// Map parent if present
-		if parentMap, ok := resultMap["parent"].(map[string]any); ok {
-			parent := &SiteGroup{}
-			if parentID, ok := parentMap["id"].(float64); ok {
-				parent.ID = int(parentID)
-			}
-			if parentName, ok := parentMap["name"].(string); ok {
-				parent.Name = parentName
-			}
-			if parentSlug, ok := parentMap["slug"].(string); ok {
-				parent.Slug = parentSlug
-			}
-			siteGroup.Parent = parent
+		err := convertMapToStruct(resultMap, &siteGroup)
+		if err != nil {
+			return nil, fmt.Errorf("error converting map to struct at index %d: %w", i, err)
 		}
 
 		siteGroups[i] = siteGroup
@@ -95,11 +61,11 @@ func (service *Service) ListSiteGroups(input *ListSiteGroupsInput) ([]SiteGroup,
 }
 
 // GetSiteGroup retrieves a single site group by ID
-func (service *Service) GetSiteGroup(id int) (*SiteGroup, error) {
-	path := service.BuildPath("dcim", "site-groups", fmt.Sprintf("%d", id))
+func (c *Client) GetSiteGroup(id int) (*SiteGroup, error) {
+	path := c.BuildPath("dcim", "site-groups", fmt.Sprintf("%d", id))
 
 	var siteGroup SiteGroup
-	resp, err := service.Client.R().
+	resp, err := c.R().
 		SetResult(&siteGroup).
 		Get(path)
 
@@ -111,23 +77,15 @@ func (service *Service) GetSiteGroup(id int) (*SiteGroup, error) {
 		return nil, fmt.Errorf("site group not found")
 	}
 
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
-	}
-
 	return &siteGroup, nil
 }
 
 // CreateSiteGroup creates a new site group
-func (service *Service) CreateSiteGroup(input *CreateSiteGroupInput) (*SiteGroup, error) {
-	if err := input.Validate(); err != nil {
-		return nil, fmt.Errorf("validation failed: %w", err)
-	}
-
-	path := service.BuildPath("dcim", "site-groups")
+func (c *Client) CreateSiteGroup(input *CreateSiteGroupInput) (*SiteGroup, error) {
+	path := c.BuildPath("dcim", "site-groups")
 
 	var siteGroup SiteGroup
-	resp, err := service.Client.R().
+	resp, err := c.R().
 		SetBody(input).
 		SetResult(&siteGroup).
 		Post(path)
@@ -136,7 +94,7 @@ func (service *Service) CreateSiteGroup(input *CreateSiteGroupInput) (*SiteGroup
 		return nil, fmt.Errorf("error creating site group: %w", err)
 	}
 
-	if resp.StatusCode() != http.StatusCreated && resp.StatusCode() != http.StatusOK {
+	if resp.StatusCode() != http.StatusCreated {
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
 	}
 
@@ -144,15 +102,11 @@ func (service *Service) CreateSiteGroup(input *CreateSiteGroupInput) (*SiteGroup
 }
 
 // UpdateSiteGroup updates an existing site group
-func (service *Service) UpdateSiteGroup(input *UpdateSiteGroupInput) (*SiteGroup, error) {
-	if err := input.Validate(); err != nil {
-		return nil, fmt.Errorf("validation failed: %w", err)
-	}
-
-	path := service.BuildPath("dcim", "site-groups", fmt.Sprintf("%d", input.ID))
+func (c *Client) UpdateSiteGroup(input *UpdateSiteGroupInput) (*SiteGroup, error) {
+	path := c.BuildPath("dcim", "site-groups", fmt.Sprintf("%d", input.ID))
 
 	var siteGroup SiteGroup
-	resp, err := service.Client.R().
+	resp, err := c.R().
 		SetBody(input).
 		SetResult(&siteGroup).
 		Put(path)
@@ -172,16 +126,12 @@ func (service *Service) UpdateSiteGroup(input *UpdateSiteGroupInput) (*SiteGroup
 	return &siteGroup, nil
 }
 
-// PatchSiteGroup partially updates an existing site group
-func (service *Service) PatchSiteGroup(input *PatchSiteGroupInput) (*SiteGroup, error) {
-	if err := input.Validate(); err != nil {
-		return nil, fmt.Errorf("validation failed: %w", err)
-	}
-
-	path := service.BuildPath("dcim", "site-groups", fmt.Sprintf("%d", input.ID))
+// PatchSiteGroup patches an existing site group
+func (c *Client) PatchSiteGroup(input *PatchSiteGroupInput) (*SiteGroup, error) {
+	path := c.BuildPath("dcim", "site-groups", fmt.Sprintf("%d", input.ID))
 
 	var siteGroup SiteGroup
-	resp, err := service.Client.R().
+	resp, err := c.R().
 		SetBody(input).
 		SetResult(&siteGroup).
 		Patch(path)
@@ -201,40 +151,11 @@ func (service *Service) PatchSiteGroup(input *PatchSiteGroupInput) (*SiteGroup, 
 	return &siteGroup, nil
 }
 
-// PutSiteGroup creates or updates a site group
-func (service *Service) PutSiteGroup(input *UpdateSiteGroupInput) (*SiteGroup, error) {
-	if err := input.Validate(); err != nil {
-		return nil, err
-	}
-
-	path := service.BuildPath("dcim", "site-groups", fmt.Sprintf("%d", input.ID))
-
-	var siteGroup SiteGroup
-	resp, err := service.Client.R().
-		SetBody(input).
-		SetResult(&siteGroup).
-		Put(path)
-
-	if err != nil {
-		return nil, fmt.Errorf("error updating site group: %w", err)
-	}
-
-	if resp.StatusCode() == http.StatusNotFound {
-		return nil, fmt.Errorf("site group not found")
-	}
-
-	if resp.StatusCode() != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
-	}
-
-	return &siteGroup, nil
-}
-
 // DeleteSiteGroup deletes a site group
-func (service *Service) DeleteSiteGroup(id int) error {
-	path := service.BuildPath("dcim", "site-groups", fmt.Sprintf("%d", id))
+func (c *Client) DeleteSiteGroup(id int) error {
+	path := c.BuildPath("dcim", "site-groups", fmt.Sprintf("%d", id))
 
-	resp, err := service.Client.R().
+	resp, err := c.R().
 		Delete(path)
 
 	if err != nil {

@@ -19,13 +19,13 @@ func locationsToPointers(locations []client.Location) []*client.Location {
 }
 
 func TestLocationIntegration(t *testing.T) {
-	client := setupTestClient(t)
+	c := setupTestClient(t)
 	cleanup := newCleanupList(t)
 	defer cleanup.runAll()
 
 	t.Run("Complex location hierarchy with relationships", func(t *testing.T) {
 		// Create a site
-		site, err := client.CreateSite(&client.CreateSiteInput{
+		site, err := c.CreateSite(&client.CreateSiteInput{
 			Name:        "Test Site",
 			Slug:        "test-site",
 			Description: "Top level site",
@@ -33,20 +33,20 @@ func TestLocationIntegration(t *testing.T) {
 		})
 		require.NoError(t, err)
 		cleanup.add(func() error {
-			return client.DeleteSite(site.ID)
+			return c.DeleteSite(site.ID)
 		})
 		// Create a region hierarchy
-		parentRegion, err := client.CreateRegion(&client.CreateRegionInput{
+		parentRegion, err := c.CreateRegion(&client.CreateRegionInput{
 			Name:        "Parent Region",
 			Slug:        "parent-region",
 			Description: "Top level region",
 		})
 		require.NoError(t, err)
 		cleanup.add(func() error {
-			return client.DeleteRegion(parentRegion.ID)
+			return c.DeleteRegion(parentRegion.ID)
 		})
 
-		childRegion, err := client.CreateRegion(&client.CreateRegionInput{
+		childRegion, err := c.CreateRegion(&client.CreateRegionInput{
 			Name:        "Child Region",
 			Slug:        "child-region",
 			Description: "Child region",
@@ -54,7 +54,7 @@ func TestLocationIntegration(t *testing.T) {
 		})
 		require.NoError(t, err)
 		cleanup.add(func() error {
-			return client.DeleteRegion(childRegion.ID)
+			return c.DeleteRegion(childRegion.ID)
 		})
 
 		// Create a complex location hierarchy
@@ -79,11 +79,11 @@ func TestLocationIntegration(t *testing.T) {
 				},
 			},
 		}
-		campus, err := client.CreateLocation(campusInput)
+		campus, err := c.CreateLocation(campusInput)
 		require.NoError(t, err)
 		locations["campus"] = campus
 		cleanup.add(func() error {
-			return client.DeleteLocation(campus.ID)
+			return c.DeleteLocation(campus.ID)
 		})
 
 		// Create building locations
@@ -102,11 +102,11 @@ func TestLocationIntegration(t *testing.T) {
 					},
 				},
 			}
-			building, err := client.CreateLocation(buildingInput)
+			building, err := c.CreateLocation(buildingInput)
 			require.NoError(t, err)
 			locations[fmt.Sprintf("building%d", i)] = building
 			cleanup.add(func() error {
-				return client.DeleteLocation(building.ID)
+				return c.DeleteLocation(building.ID)
 			})
 
 			// Create floor locations for each building
@@ -125,11 +125,11 @@ func TestLocationIntegration(t *testing.T) {
 						},
 					},
 				}
-				floor, err := client.CreateLocation(floorInput)
+				floor, err := c.CreateLocation(floorInput)
 				require.NoError(t, err)
 				locations[fmt.Sprintf("building%d_floor%d", i, j)] = floor
 				cleanup.add(func() error {
-					return client.DeleteLocation(floor.ID)
+					return c.DeleteLocation(floor.ID)
 				})
 			}
 		}
@@ -169,7 +169,7 @@ func TestLocationIntegration(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				list, err := client.ListLocations(tt.input)
+				list, err := c.ListLocations(tt.input)
 				require.NoError(t, err)
 				require.NotNil(t, list)
 				assert.Equal(t, tt.expectedCount, len(list))
@@ -188,7 +188,7 @@ func TestLocationIntegration(t *testing.T) {
 			Site:        site.ID, // Change to parent group
 			Parent:      campus.ID,
 		}
-		updated, err := client.UpdateLocation(updateInput)
+		updated, err := c.UpdateLocation(updateInput)
 		require.NoError(t, err)
 		require.NotNil(t, updated)
 		assert.Equal(t, updateInput.Name, updated.Name)

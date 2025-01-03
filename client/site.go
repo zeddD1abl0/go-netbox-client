@@ -233,7 +233,7 @@ func (input *ListSitesInput) Validate() error {
 			SiteStatusStaging,
 			SiteStatusDecommissioning,
 			SiteStatusRetired,
-		).Optional()),
+		)),
 		validation.Field(&input.Limit, validation.Min(0)),
 		validation.Field(&input.Offset, validation.Min(0)),
 	)

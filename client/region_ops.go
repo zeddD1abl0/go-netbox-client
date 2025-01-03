@@ -6,8 +6,8 @@ import (
 )
 
 // ListRegions lists all regions
-func (service *Service) ListRegions(input *ListRegionsInput) ([]Region, error) {
-	path := service.BuildPath("dcim", "regions")
+func (c *Client) ListRegions(input *ListRegionsInput) ([]Region, error) {
+	path := c.BuildPath("dcim", "regions")
 
 	// Build query parameters
 	params := map[string]string{}
@@ -30,7 +30,7 @@ func (service *Service) ListRegions(input *ListRegionsInput) ([]Region, error) {
 	// Make request
 	var response Response
 	response.Results = make([]any, 0)
-	_, err := service.Client.R().
+	_, err := c.R().
 		SetQueryParams(params).
 		SetResult(&response).
 		Get(path)
@@ -49,46 +49,9 @@ func (service *Service) ListRegions(input *ListRegionsInput) ([]Region, error) {
 
 		// Create a new Region
 		var region Region
-
-		// Map basic fields
-		if id, ok := resultMap["id"].(float64); ok {
-			region.ID = int(id)
-		}
-		if url, ok := resultMap["url"].(string); ok {
-			region.URL = url
-		}
-		if name, ok := resultMap["name"].(string); ok {
-			region.Name = name
-		}
-		if slug, ok := resultMap["slug"].(string); ok {
-			region.Slug = slug
-		}
-		if description, ok := resultMap["description"].(string); ok {
-			region.Description = description
-		}
-		if created, ok := resultMap["created"].(string); ok {
-			region.Created = created
-		}
-		if lastUpdated, ok := resultMap["last_updated"].(string); ok {
-			region.LastUpdated = lastUpdated
-		}
-		if siteCount, ok := resultMap["site_count"].(float64); ok {
-			region.SiteCount = int(siteCount)
-		}
-
-		// Map parent if present
-		if parentMap, ok := resultMap["parent"].(map[string]any); ok {
-			parent := &Region{}
-			if parentID, ok := parentMap["id"].(float64); ok {
-				parent.ID = int(parentID)
-			}
-			if parentName, ok := parentMap["name"].(string); ok {
-				parent.Name = parentName
-			}
-			if parentSlug, ok := parentMap["slug"].(string); ok {
-				parent.Slug = parentSlug
-			}
-			region.Parent = parent
+		err := convertMapToStruct(resultMap, &region)
+		if err != nil {
+			return nil, fmt.Errorf("error converting map to struct at index %d: %w", i, err)
 		}
 
 		regions[i] = region
@@ -98,16 +61,58 @@ func (service *Service) ListRegions(input *ListRegionsInput) ([]Region, error) {
 }
 
 // GetRegion retrieves a single region by ID
-func (service *Service) GetRegion(id int) (*Region, error) {
-	path := service.BuildPath("dcim", "regions", fmt.Sprintf("%d", id))
+func (c *Client) GetRegion(id int) (*Region, error) {
+	path := c.BuildPath("dcim", "regions", fmt.Sprintf("%d", id))
 
 	var region Region
-	resp, err := service.Client.R().
+	resp, err := c.R().
 		SetResult(&region).
 		Get(path)
 
 	if err != nil {
 		return nil, fmt.Errorf("error getting region: %w", err)
+	}
+
+	if resp.StatusCode() == http.StatusNotFound {
+		return nil, fmt.Errorf("region not found")
+	}
+
+	return &region, nil
+}
+
+// CreateRegion creates a new region
+func (c *Client) CreateRegion(input *CreateRegionInput) (*Region, error) {
+	path := c.BuildPath("dcim", "regions")
+
+	var region Region
+	resp, err := c.R().
+		SetBody(input).
+		SetResult(&region).
+		Post(path)
+
+	if err != nil {
+		return nil, fmt.Errorf("error creating region: %w", err)
+	}
+
+	if resp.StatusCode() != http.StatusCreated {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+	}
+
+	return &region, nil
+}
+
+// UpdateRegion updates an existing region
+func (c *Client) UpdateRegion(input *UpdateRegionInput) (*Region, error) {
+	path := c.BuildPath("dcim", "regions", fmt.Sprintf("%d", input.ID))
+
+	var region Region
+	resp, err := c.R().
+		SetBody(input).
+		SetResult(&region).
+		Put(path)
+
+	if err != nil {
+		return nil, fmt.Errorf("error updating region: %w", err)
 	}
 
 	if resp.StatusCode() == http.StatusNotFound {
@@ -121,70 +126,12 @@ func (service *Service) GetRegion(id int) (*Region, error) {
 	return &region, nil
 }
 
-// CreateRegion creates a new region
-func (service *Service) CreateRegion(input *CreateRegionInput) (*Region, error) {
-	if err := input.Validate(); err != nil {
-		return nil, fmt.Errorf("validation failed: %w", err)
-	}
-
-	path := service.BuildPath("dcim", "regions")
-
-	var region Region
-	resp, err := service.Client.R().
-		SetBody(input).
-		SetResult(&region).
-		Post(path)
-
-	if err != nil {
-		return nil, fmt.Errorf("error creating region: %w", err)
-	}
-
-	if resp.StatusCode() != http.StatusOK && resp.StatusCode() != http.StatusCreated {
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
-	}
-
-	return &region, nil
-}
-
-// UpdateRegion updates an existing region
-func (service *Service) UpdateRegion(input *UpdateRegionInput) (*Region, error) {
-	if err := input.Validate(); err != nil {
-		return nil, fmt.Errorf("validation failed: %w", err)
-	}
-
-	path := service.BuildPath("dcim", "regions", fmt.Sprintf("%d", input.ID))
-
-	var region Region
-	resp, err := service.Client.R().
-		SetBody(input).
-		SetResult(&region).
-		Put(path)
-
-	if err != nil {
-		return nil, fmt.Errorf("error updating region: %w", err)
-	}
-
-	if resp.StatusCode() == http.StatusNotFound {
-		return nil, fmt.Errorf("region not found")
-	}
-
-	if resp.StatusCode() != http.StatusOK && resp.StatusCode() != http.StatusCreated {
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
-	}
-
-	return &region, nil
-}
-
 // PatchRegion patches an existing region
-func (service *Service) PatchRegion(input *PatchRegionInput) (*Region, error) {
-	if err := input.Validate(); err != nil {
-		return nil, fmt.Errorf("validation failed: %w", err)
-	}
-
-	path := service.BuildPath("dcim", "regions", fmt.Sprintf("%d", input.ID))
+func (c *Client) PatchRegion(input *PatchRegionInput) (*Region, error) {
+	path := c.BuildPath("dcim", "regions", fmt.Sprintf("%d", input.ID))
 
 	var region Region
-	resp, err := service.Client.R().
+	resp, err := c.R().
 		SetBody(input).
 		SetResult(&region).
 		Patch(path)
@@ -197,7 +144,7 @@ func (service *Service) PatchRegion(input *PatchRegionInput) (*Region, error) {
 		return nil, fmt.Errorf("region not found")
 	}
 
-	if resp.StatusCode() != http.StatusOK && resp.StatusCode() != http.StatusCreated {
+	if resp.StatusCode() != http.StatusOK {
 		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
 	}
 
@@ -205,10 +152,10 @@ func (service *Service) PatchRegion(input *PatchRegionInput) (*Region, error) {
 }
 
 // DeleteRegion deletes a region
-func (service *Service) DeleteRegion(id int) error {
-	path := service.BuildPath("dcim", "regions", fmt.Sprintf("%d", id))
+func (c *Client) DeleteRegion(id int) error {
+	path := c.BuildPath("dcim", "regions", fmt.Sprintf("%d", id))
 
-	resp, err := service.Client.R().
+	resp, err := c.R().
 		Delete(path)
 
 	if err != nil {

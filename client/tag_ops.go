@@ -2,13 +2,14 @@ package client
 
 import (
 	"fmt"
+	"net/http"
 
 	"github.com/zeddD1abl0/go-netbox-client/models"
 )
 
 // ListTags lists all tags
-func (service *Service) ListTags(input *ListTagsInput) ([]models.Tag, error) {
-	path := service.BuildPath("extras", "tags")
+func (c *Client) ListTags(input *ListTagsInput) ([]models.Tag, error) {
+	path := c.BuildPath("extras", "tags")
 
 	// Build query parameters
 	params := map[string]string{}
@@ -31,7 +32,7 @@ func (service *Service) ListTags(input *ListTagsInput) ([]models.Tag, error) {
 	// Make request
 	var response Response
 	response.Results = make([]any, 0)
-	_, err := service.Client.R().
+	_, err := c.R().
 		SetQueryParams(params).
 		SetResult(&response).
 		Get(path)
@@ -40,35 +41,21 @@ func (service *Service) ListTags(input *ListTagsInput) ([]models.Tag, error) {
 		return nil, fmt.Errorf("error listing tags: %w", err)
 	}
 
-	// Convert response to tags
+	// Convert results to []Tag
 	tags := make([]models.Tag, len(response.Results))
 	for i, result := range response.Results {
-		resultMap := result.(map[string]any)
-		var tag models.Tag
+		resultMap, ok := result.(map[string]any)
+		if !ok {
+			return nil, fmt.Errorf("unexpected result type at index %d", i)
+		}
 
-		if id, ok := resultMap["id"].(float64); ok {
-			tag.ID = int(id)
+		// Create a new Tag
+		var tag models.Tag
+		err := convertMapToStruct(resultMap, &tag)
+		if err != nil {
+			return nil, fmt.Errorf("error converting map to struct at index %d: %w", i, err)
 		}
-		if name, ok := resultMap["name"].(string); ok {
-			tag.Name = name
-		}
-		if slug, ok := resultMap["slug"].(string); ok {
-			tag.Slug = slug
-		}
-		if color, ok := resultMap["color"].(string); ok {
-			tag.Color = color
-		}
-		if description, ok := resultMap["description"].(string); ok {
-			tag.Description = description
-		}
-		// if objectTypes, ok := resultMap["object_types"].([]any); ok {
-		// 	tag.ObjectTypes = make([]string, len(objectTypes))
-		// 	for j, ot := range objectTypes {
-		// 		if otStr, ok := ot.(string); ok {
-		// 			tag.ObjectTypes[j] = otStr
-		// 		}
-		// 	}
-		// }
+
 		tags[i] = tag
 	}
 
@@ -76,11 +63,11 @@ func (service *Service) ListTags(input *ListTagsInput) ([]models.Tag, error) {
 }
 
 // GetTag retrieves a single tag by ID
-func (service *Service) GetTag(id int) (*models.Tag, error) {
-	path := service.BuildPath("extras", "tags", fmt.Sprintf("%d", id))
+func (c *Client) GetTag(id int) (*models.Tag, error) {
+	path := c.BuildPath("extras", "tags", fmt.Sprintf("%d", id))
 
 	var tag models.Tag
-	resp, err := service.Client.R().
+	resp, err := c.R().
 		SetResult(&tag).
 		Get(path)
 
@@ -88,7 +75,7 @@ func (service *Service) GetTag(id int) (*models.Tag, error) {
 		return nil, fmt.Errorf("error getting tag: %w", err)
 	}
 
-	if resp.StatusCode() == 404 {
+	if resp.StatusCode() == http.StatusNotFound {
 		return nil, fmt.Errorf("tag not found")
 	}
 
@@ -96,15 +83,11 @@ func (service *Service) GetTag(id int) (*models.Tag, error) {
 }
 
 // CreateTag creates a new tag
-func (service *Service) CreateTag(input *CreateTagInput) (*models.Tag, error) {
-	if err := input.Validate(); err != nil {
-		return nil, fmt.Errorf("validation failed: %w", err)
-	}
-
-	path := service.BuildPath("extras", "tags")
+func (c *Client) CreateTag(input *CreateTagInput) (*models.Tag, error) {
+	path := c.BuildPath("extras", "tags")
 
 	var tag models.Tag
-	resp, err := service.Client.R().
+	resp, err := c.R().
 		SetBody(input).
 		SetResult(&tag).
 		Post(path)
@@ -113,23 +96,19 @@ func (service *Service) CreateTag(input *CreateTagInput) (*models.Tag, error) {
 		return nil, fmt.Errorf("error creating tag: %w", err)
 	}
 
-	if resp.StatusCode() >= 400 {
-		return nil, fmt.Errorf("error creating tag: %s", resp.String())
+	if resp.StatusCode() != http.StatusCreated {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
 	}
 
 	return &tag, nil
 }
 
 // UpdateTag updates an existing tag
-func (service *Service) UpdateTag(input *UpdateTagInput) (*models.Tag, error) {
-	if err := input.Validate(); err != nil {
-		return nil, fmt.Errorf("validation failed: %w", err)
-	}
-
-	path := service.BuildPath("extras", "tags", fmt.Sprintf("%d", input.ID))
+func (c *Client) UpdateTag(input *UpdateTagInput) (*models.Tag, error) {
+	path := c.BuildPath("extras", "tags", fmt.Sprintf("%d", input.ID))
 
 	var tag models.Tag
-	resp, err := service.Client.R().
+	resp, err := c.R().
 		SetBody(input).
 		SetResult(&tag).
 		Put(path)
@@ -138,43 +117,23 @@ func (service *Service) UpdateTag(input *UpdateTagInput) (*models.Tag, error) {
 		return nil, fmt.Errorf("error updating tag: %w", err)
 	}
 
-	if resp.StatusCode() == 404 {
+	if resp.StatusCode() == http.StatusNotFound {
 		return nil, fmt.Errorf("tag not found")
+	}
+
+	if resp.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
 	}
 
 	return &tag, nil
 }
 
-// DeleteTag deletes a tag
-func (service *Service) DeleteTag(id int) error {
-	path := service.BuildPath("extras", "tags", fmt.Sprintf("%d", id))
-
-	resp, err := service.Client.R().Delete(path)
-	if err != nil {
-		return fmt.Errorf("error deleting tag: %w", err)
-	}
-
-	if resp.StatusCode() == 404 {
-		return fmt.Errorf("tag not found")
-	}
-
-	if resp.StatusCode() >= 400 {
-		return fmt.Errorf("error deleting tag: %s", resp.String())
-	}
-
-	return nil
-}
-
-// PatchTag patches a tag
-func (service *Service) PatchTag(input *PatchTagInput) (*models.Tag, error) {
-	if err := input.Validate(); err != nil {
-		return nil, fmt.Errorf("validation failed: %w", err)
-	}
-
-	path := service.BuildPath("extras", "tags", fmt.Sprintf("%d", input.ID))
+// PatchTag patches an existing tag
+func (c *Client) PatchTag(input *PatchTagInput) (*models.Tag, error) {
+	path := c.BuildPath("extras", "tags", fmt.Sprintf("%d", input.ID))
 
 	var tag models.Tag
-	resp, err := service.Client.R().
+	resp, err := c.R().
 		SetBody(input).
 		SetResult(&tag).
 		Patch(path)
@@ -183,9 +142,35 @@ func (service *Service) PatchTag(input *PatchTagInput) (*models.Tag, error) {
 		return nil, fmt.Errorf("error patching tag: %w", err)
 	}
 
-	if resp.StatusCode() == 404 {
+	if resp.StatusCode() == http.StatusNotFound {
 		return nil, fmt.Errorf("tag not found")
 	}
 
+	if resp.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+	}
+
 	return &tag, nil
+}
+
+// DeleteTag deletes a tag
+func (c *Client) DeleteTag(id int) error {
+	path := c.BuildPath("extras", "tags", fmt.Sprintf("%d", id))
+
+	resp, err := c.R().
+		Delete(path)
+
+	if err != nil {
+		return fmt.Errorf("error deleting tag: %w", err)
+	}
+
+	if resp.StatusCode() == http.StatusNotFound {
+		return fmt.Errorf("tag not found")
+	}
+
+	if resp.StatusCode() != http.StatusNoContent {
+		return fmt.Errorf("unexpected status code: %d", resp.StatusCode())
+	}
+
+	return nil
 }
