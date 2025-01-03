@@ -9,7 +9,7 @@ import (
 
 // ListTags lists all tags
 func (service *Service) ListTags(input *ListTagsInput) ([]models.Tag, error) {
-	path := service.BuildPath("tags")
+	path := service.BuildPath("extras", "tags")
 
 	// Build query parameters
 	params := map[string]string{}
@@ -77,7 +77,7 @@ func (service *Service) ListTags(input *ListTagsInput) ([]models.Tag, error) {
 
 // GetTag retrieves a single tag by ID
 func (service *Service) GetTag(id int) (*models.Tag, error) {
-	path := service.BuildPath("tags", fmt.Sprintf("%d", id))
+	path := service.BuildPath("extras", "tags", fmt.Sprintf("%d", id))
 
 	var tag models.Tag
 	resp, err := service.Client.R().
@@ -105,7 +105,7 @@ func (service *Service) CreateTag(input *CreateTagInput) (*models.Tag, error) {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	path := service.BuildPath("tags")
+	path := service.BuildPath("extras", "tags")
 
 	var tag models.Tag
 	resp, err := service.Client.R().
@@ -130,7 +130,7 @@ func (service *Service) UpdateTag(input *UpdateTagInput) (*models.Tag, error) {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	path := service.BuildPath("tags", fmt.Sprintf("%d", input.ID))
+	path := service.BuildPath("extras", "tags", fmt.Sprintf("%d", input.ID))
 
 	var tag models.Tag
 	resp, err := service.Client.R().
@@ -155,7 +155,7 @@ func (service *Service) UpdateTag(input *UpdateTagInput) (*models.Tag, error) {
 
 // DeleteTag deletes a tag
 func (service *Service) DeleteTag(id int) error {
-	path := service.BuildPath("tags", fmt.Sprintf("%d", id))
+	path := service.BuildPath("extras", "tags", fmt.Sprintf("%d", id))
 
 	resp, err := service.Client.R().
 		Delete(path)
@@ -181,7 +181,7 @@ func (service *Service) PatchTag(input *PatchTagInput) (*models.Tag, error) {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	path := service.BuildPath("tags", fmt.Sprintf("%d", input.ID))
+	path := service.BuildPath("extras", "tags", fmt.Sprintf("%d", input.ID))
 
 	var tag models.Tag
 	resp, err := service.Client.R().
