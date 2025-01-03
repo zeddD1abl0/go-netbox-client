@@ -1,4 +1,4 @@
-package dcim
+package client
 
 import (
 	"fmt"
@@ -51,7 +51,7 @@ func (service *Service) ListSiteGroups(input *ListSiteGroupsInput) ([]SiteGroup,
 
 		// Create a new SiteGroup
 		var siteGroup SiteGroup
-		
+
 		// Map basic fields
 		if id, ok := resultMap["id"].(float64); ok {
 			siteGroup.ID = int(id)

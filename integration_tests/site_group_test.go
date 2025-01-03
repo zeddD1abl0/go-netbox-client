@@ -11,7 +11,7 @@ import (
 )
 
 func TestSiteGroupIntegration(t *testing.T) {
-	_, service := setupTestClient(t)
+	client := setupTestClient(t)
 	cleanup := newCleanupList(t)
 	defer cleanup.runAll()
 
@@ -22,11 +22,11 @@ func TestSiteGroupIntegration(t *testing.T) {
 			Slug:        "parent-site-group",
 			Description: "Parent site group for testing",
 		}
-		parent, err := service.CreateSiteGroup(parentInput)
+		parent, err := client.DCIM().CreateSiteGroup(parentInput)
 		require.NoError(t, err)
 		require.NotNil(t, parent)
 		cleanup.add(func() error {
-			return service.DeleteSiteGroup(parent.ID)
+			return client.DCIM().DeleteSiteGroup(parent.ID)
 		})
 
 		// Create child site groups
@@ -38,12 +38,12 @@ func TestSiteGroupIntegration(t *testing.T) {
 				Description: fmt.Sprintf("Child site group %d of Parent Site Group", i+1),
 				Parent:      parent.ID,
 			}
-			child, err := service.CreateSiteGroup(childInput)
+			child, err := client.DCIM().CreateSiteGroup(childInput)
 			require.NoError(t, err)
 			require.NotNil(t, child)
 			childGroups[i] = child
 			cleanup.add(func() error {
-				return service.DeleteSiteGroup(child.ID)
+				return client.DCIM().DeleteSiteGroup(child.ID)
 			})
 		}
 
@@ -52,7 +52,7 @@ func TestSiteGroupIntegration(t *testing.T) {
 		listInput := &dcim.ListSiteGroupsInput{
 			Parent: fmt.Sprintf("%d", parent.ID),
 		}
-		list, err := service.ListSiteGroups(listInput)
+		list, err := client.DCIM().ListSiteGroups(listInput)
 		require.NoError(t, err)
 		require.NotNil(t, list)
 		assert.Equal(t, 3, len(list))
@@ -65,14 +65,14 @@ func TestSiteGroupIntegration(t *testing.T) {
 			Description: "Updated child site group description",
 			Parent:      parent.ID,
 		}
-		updated, err := service.UpdateSiteGroup(updateInput)
+		updated, err := client.DCIM().UpdateSiteGroup(updateInput)
 		require.NoError(t, err)
 		require.NotNil(t, updated)
 		assert.Equal(t, updateInput.Name, updated.Name)
 		assert.Equal(t, updateInput.Description, updated.Description)
 
 		// Verify parent-child relationship
-		retrieved, err := service.GetSiteGroup(childGroups[0].ID)
+		retrieved, err := client.DCIM().GetSiteGroup(childGroups[0].ID)
 		require.NoError(t, err)
 		require.NotNil(t, retrieved)
 		require.NotNil(t, retrieved.Parent)
@@ -122,11 +122,11 @@ func TestSiteGroupIntegration(t *testing.T) {
 					Color: "0xFF00FF",
 				}
 			}
-			created, err := service.CreateSiteGroup(input)
+			created, err := client.DCIM().CreateSiteGroup(input)
 			require.NoError(t, err)
 			require.NotNil(t, created)
 			cleanup.add(func() error {
-				return service.DeleteSiteGroup(created.ID)
+				return client.DCIM().DeleteSiteGroup(created.ID)
 			})
 		}
 
@@ -164,7 +164,7 @@ func TestSiteGroupIntegration(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				list, err := service.ListSiteGroups(tt.input)
+				list, err := client.DCIM().ListSiteGroups(tt.input)
 				require.NoError(t, err)
 				require.NotNil(t, list)
 				assert.Equal(t, tt.expectedCount, len(list))

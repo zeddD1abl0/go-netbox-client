@@ -1,45 +1,49 @@
-package dcim
+package client
 
 import (
 	"github.com/zeddD1abl0/go-netbox-client/models"
 )
 
-// Region represents a Netbox region
-type Region struct {
+// Location represents a Netbox location
+type Location struct {
 	ID           int                `json:"id"`
 	URL          string             `json:"url"`
 	Name         string             `json:"name"`
 	Slug         string             `json:"slug"`
-	Parent       *Region            `json:"parent,omitempty"`
+	Site         *Site              `json:"site"`
+	Parent       *Location          `json:"parent,omitempty"`
 	Description  string             `json:"description,omitempty"`
 	Tags         []models.TagCreate `json:"tags,omitempty"`
 	CustomFields map[string]any     `json:"custom_fields,omitempty"`
 	Created      string             `json:"created"`
 	LastUpdated  string             `json:"last_updated"`
-	SiteCount    int                `json:"site_count"`
+	RackCount    int                `json:"rack_count"`
+	DeviceCount  int                `json:"device_count"`
 }
 
-// ListRegionsInput represents the input for listing regions
-type ListRegionsInput struct {
+// ListLocationsInput represents the input for listing locations
+type ListLocationsInput struct {
 	Name   string
+	Site   string
 	Parent string
 	Tag    string
 	Limit  int
 	Offset int
 }
 
-// CreateRegionInput represents the input for creating a region
-type CreateRegionInput struct {
+// CreateLocationInput represents the input for creating a location
+type CreateLocationInput struct {
 	Name         string             `json:"name"`
 	Slug         string             `json:"slug"`
+	Site         int                `json:"site"`
 	Parent       int                `json:"parent,omitempty"`
 	Description  string             `json:"description,omitempty"`
 	Tags         []models.TagCreate `json:"tags,omitempty"`
 	CustomFields map[string]any     `json:"custom_fields,omitempty"`
 }
 
-// Validate validates the CreateRegionInput
-func (input *CreateRegionInput) Validate() error {
+// Validate validates the CreateLocationInput
+func (input *CreateLocationInput) Validate() error {
 	var errors models.ValidationErrors
 
 	if err := models.ValidateRequired("name", input.Name); err != nil {
@@ -50,6 +54,13 @@ func (input *CreateRegionInput) Validate() error {
 		errors = append(errors, *err.(*models.ValidationError))
 	}
 
+	if input.Site == 0 {
+		errors = append(errors, models.ValidationError{
+			Field:   "site",
+			Message: "Site is required",
+		})
+	}
+
 	if len(errors) > 0 {
 		return errors
 	}
@@ -57,19 +68,20 @@ func (input *CreateRegionInput) Validate() error {
 	return nil
 }
 
-// UpdateRegionInput represents the input for updating a region
-type UpdateRegionInput struct {
+// UpdateLocationInput represents the input for updating a location
+type UpdateLocationInput struct {
 	ID           int                `json:"-"`
 	Name         string             `json:"name"`
 	Slug         string             `json:"slug"`
+	Site         int                `json:"site"`
 	Parent       int                `json:"parent,omitempty"`
 	Description  string             `json:"description,omitempty"`
 	Tags         []models.TagCreate `json:"tags,omitempty"`
 	CustomFields map[string]any     `json:"custom_fields,omitempty"`
 }
 
-// Validate validates the UpdateRegionInput
-func (input *UpdateRegionInput) Validate() error {
+// Validate validates the UpdateLocationInput
+func (input *UpdateLocationInput) Validate() error {
 	var errors models.ValidationErrors
 
 	if err := models.ValidateRequired("name", input.Name); err != nil {
@@ -80,6 +92,13 @@ func (input *UpdateRegionInput) Validate() error {
 		errors = append(errors, *err.(*models.ValidationError))
 	}
 
+	if input.Site == 0 {
+		errors = append(errors, models.ValidationError{
+			Field:   "site",
+			Message: "Site is required",
+		})
+	}
+
 	if len(errors) > 0 {
 		return errors
 	}
@@ -87,19 +106,20 @@ func (input *UpdateRegionInput) Validate() error {
 	return nil
 }
 
-// PatchRegionInput represents the input for patching a region
-type PatchRegionInput struct {
+// PatchLocationInput represents the input for patching a location
+type PatchLocationInput struct {
 	ID           int                 `json:"-"`
 	Name         *string             `json:"name,omitempty"`
 	Slug         *string             `json:"slug,omitempty"`
+	Site         *int                `json:"site,omitempty"`
 	Parent       *int                `json:"parent,omitempty"`
 	Description  *string             `json:"description,omitempty"`
 	Tags         *[]models.TagCreate `json:"tags,omitempty"`
 	CustomFields map[string]any      `json:"custom_fields,omitempty"`
 }
 
-// Validate validates the PatchRegionInput
-func (input *PatchRegionInput) Validate() error {
+// Validate validates the PatchLocationInput
+func (input *PatchLocationInput) Validate() error {
 	if input.ID == 0 {
 		return &models.ValidationError{
 			Field:   "id",

@@ -1,9 +1,8 @@
-package extras
+package client
 
 import (
 	"fmt"
 
-	"github.com/zeddD1abl0/go-netbox-client/client"
 	"github.com/zeddD1abl0/go-netbox-client/models"
 )
 
@@ -30,7 +29,7 @@ func (service *Service) ListTags(input *ListTagsInput) ([]models.Tag, error) {
 	}
 
 	// Make request
-	var response client.Response
+	var response Response
 	response.Results = make([]any, 0)
 	_, err := service.Client.R().
 		SetQueryParams(params).
@@ -50,12 +49,6 @@ func (service *Service) ListTags(input *ListTagsInput) ([]models.Tag, error) {
 		if id, ok := resultMap["id"].(float64); ok {
 			tag.ID = int(id)
 		}
-		if url, ok := resultMap["url"].(string); ok {
-			tag.URL = url
-		}
-		if display, ok := resultMap["display"].(string); ok {
-			tag.Display = display
-		}
 		if name, ok := resultMap["name"].(string); ok {
 			tag.Name = name
 		}
@@ -68,7 +61,14 @@ func (service *Service) ListTags(input *ListTagsInput) ([]models.Tag, error) {
 		if description, ok := resultMap["description"].(string); ok {
 			tag.Description = description
 		}
-
+		if objectTypes, ok := resultMap["object_types"].([]any); ok {
+			tag.ObjectTypes = make([]string, len(objectTypes))
+			for j, ot := range objectTypes {
+				if otStr, ok := ot.(string); ok {
+					tag.ObjectTypes[j] = otStr
+				}
+			}
+		}
 		tags[i] = tag
 	}
 
@@ -90,10 +90,6 @@ func (service *Service) GetTag(id int) (*models.Tag, error) {
 
 	if resp.StatusCode() == 404 {
 		return nil, fmt.Errorf("tag not found")
-	}
-
-	if resp.StatusCode() >= 400 {
-		return nil, fmt.Errorf("error getting tag: %s", resp.String())
 	}
 
 	return &tag, nil
@@ -146,10 +142,6 @@ func (service *Service) UpdateTag(input *UpdateTagInput) (*models.Tag, error) {
 		return nil, fmt.Errorf("tag not found")
 	}
 
-	if resp.StatusCode() >= 400 {
-		return nil, fmt.Errorf("error updating tag: %s", resp.String())
-	}
-
 	return &tag, nil
 }
 
@@ -157,9 +149,7 @@ func (service *Service) UpdateTag(input *UpdateTagInput) (*models.Tag, error) {
 func (service *Service) DeleteTag(id int) error {
 	path := service.BuildPath("extras", "tags", fmt.Sprintf("%d", id))
 
-	resp, err := service.Client.R().
-		Delete(path)
-
+	resp, err := service.Client.R().Delete(path)
 	if err != nil {
 		return fmt.Errorf("error deleting tag: %w", err)
 	}
@@ -195,10 +185,6 @@ func (service *Service) PatchTag(input *PatchTagInput) (*models.Tag, error) {
 
 	if resp.StatusCode() == 404 {
 		return nil, fmt.Errorf("tag not found")
-	}
-
-	if resp.StatusCode() >= 400 {
-		return nil, fmt.Errorf("error patching tag: %s", resp.String())
 	}
 
 	return &tag, nil

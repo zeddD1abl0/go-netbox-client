@@ -1,4 +1,4 @@
-package dcim
+package client
 
 import (
 	"fmt"
@@ -51,7 +51,7 @@ func (service *Service) ListRegions(input *ListRegionsInput) ([]Region, error) {
 
 		// Create a new Region
 		var region Region
-		
+
 		// Map basic fields
 		if id, ok := resultMap["id"].(float64); ok {
 			region.ID = int(id)

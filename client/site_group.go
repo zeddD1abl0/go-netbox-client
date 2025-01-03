@@ -1,4 +1,4 @@
-package dcim
+package client
 
 import (
 	"github.com/zeddD1abl0/go-netbox-client/models"

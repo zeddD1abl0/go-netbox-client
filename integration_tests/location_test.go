@@ -6,12 +6,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/zeddD1abl0/go-netbox-client/client/dcim"
+	"github.com/zeddD1abl0/go-netbox-client/client"
 	"github.com/zeddD1abl0/go-netbox-client/models"
 )
 
-func locationsToPointers(locations []dcim.Location) []*dcim.Location {
-	result := make([]*dcim.Location, len(locations))
+func locationsToPointers(locations []client.Location) []*client.Location {
+	result := make([]*client.Location, len(locations))
 	for i := range locations {
 		result[i] = &locations[i]
 	}
@@ -19,13 +19,13 @@ func locationsToPointers(locations []dcim.Location) []*dcim.Location {
 }
 
 func TestLocationIntegration(t *testing.T) {
-	_, service := setupTestClient(t)
+	client := setupTestClient(t)
 	cleanup := newCleanupList(t)
 	defer cleanup.runAll()
 
 	t.Run("Complex location hierarchy with relationships", func(t *testing.T) {
 		// Create a site
-		site, err := service.CreateSite(&dcim.CreateSiteInput{
+		site, err := client.DCIM().CreateSite(&client.CreateSiteInput{
 			Name:        "Test Site",
 			Slug:        "test-site",
 			Description: "Top level site",
@@ -33,20 +33,20 @@ func TestLocationIntegration(t *testing.T) {
 		})
 		require.NoError(t, err)
 		cleanup.add(func() error {
-			return service.DeleteSite(site.ID)
+			return client.DCIM().DeleteSite(site.ID)
 		})
 		// Create a region hierarchy
-		parentRegion, err := service.CreateRegion(&dcim.CreateRegionInput{
+		parentRegion, err := client.DCIM().CreateRegion(&client.CreateRegionInput{
 			Name:        "Parent Region",
 			Slug:        "parent-region",
 			Description: "Top level region",
 		})
 		require.NoError(t, err)
 		cleanup.add(func() error {
-			return service.DeleteRegion(parentRegion.ID)
+			return client.DCIM().DeleteRegion(parentRegion.ID)
 		})
 
-		childRegion, err := service.CreateRegion(&dcim.CreateRegionInput{
+		childRegion, err := client.DCIM().CreateRegion(&client.CreateRegionInput{
 			Name:        "Child Region",
 			Slug:        "child-region",
 			Description: "Child region",
@@ -54,14 +54,14 @@ func TestLocationIntegration(t *testing.T) {
 		})
 		require.NoError(t, err)
 		cleanup.add(func() error {
-			return service.DeleteRegion(childRegion.ID)
+			return client.DCIM().DeleteRegion(childRegion.ID)
 		})
 
 		// Create a complex location hierarchy
-		locations := make(map[string]*dcim.Location)
+		locations := make(map[string]*client.Location)
 
 		// Create campus location
-		campusInput := &dcim.CreateLocationInput{
+		campusInput := &client.CreateLocationInput{
 			Name:        "Main Campus",
 			Slug:        "main-campus",
 			Description: "Main campus location",
@@ -79,16 +79,16 @@ func TestLocationIntegration(t *testing.T) {
 				},
 			},
 		}
-		campus, err := service.CreateLocation(campusInput)
+		campus, err := client.DCIM().CreateLocation(campusInput)
 		require.NoError(t, err)
 		locations["campus"] = campus
 		cleanup.add(func() error {
-			return service.DeleteLocation(campus.ID)
+			return client.DCIM().DeleteLocation(campus.ID)
 		})
 
 		// Create building locations
 		for i := 1; i <= 2; i++ {
-			buildingInput := &dcim.CreateLocationInput{
+			buildingInput := &client.CreateLocationInput{
 				Name:        fmt.Sprintf("Building %d", i),
 				Slug:        fmt.Sprintf("building-%d", i),
 				Description: fmt.Sprintf("Building %d in main campus", i),
@@ -102,16 +102,16 @@ func TestLocationIntegration(t *testing.T) {
 					},
 				},
 			}
-			building, err := service.CreateLocation(buildingInput)
+			building, err := client.DCIM().CreateLocation(buildingInput)
 			require.NoError(t, err)
 			locations[fmt.Sprintf("building%d", i)] = building
 			cleanup.add(func() error {
-				return service.DeleteLocation(building.ID)
+				return client.DCIM().DeleteLocation(building.ID)
 			})
 
 			// Create floor locations for each building
 			for j := 1; j <= 3; j++ {
-				floorInput := &dcim.CreateLocationInput{
+				floorInput := &client.CreateLocationInput{
 					Name:        fmt.Sprintf("Floor %d", j),
 					Slug:        fmt.Sprintf("floor-%d", j),
 					Description: fmt.Sprintf("Floor %d in Building %d", j, i),
@@ -125,11 +125,11 @@ func TestLocationIntegration(t *testing.T) {
 						},
 					},
 				}
-				floor, err := service.CreateLocation(floorInput)
+				floor, err := client.DCIM().CreateLocation(floorInput)
 				require.NoError(t, err)
 				locations[fmt.Sprintf("building%d_floor%d", i, j)] = floor
 				cleanup.add(func() error {
-					return service.DeleteLocation(floor.ID)
+					return client.DCIM().DeleteLocation(floor.ID)
 				})
 			}
 		}
@@ -137,17 +137,17 @@ func TestLocationIntegration(t *testing.T) {
 		// Test various filtering and relationship scenarios
 		tests := []struct {
 			name          string
-			input         *dcim.ListLocationsInput
+			input         *client.ListLocationsInput
 			expectedCount int
-			validate      func(t *testing.T, results []*dcim.Location)
+			validate      func(t *testing.T, results []*client.Location)
 		}{
 			{
 				name: "Filter by parent",
-				input: &dcim.ListLocationsInput{
+				input: &client.ListLocationsInput{
 					Parent: fmt.Sprintf("%d", locations["campus"].ID),
 				},
 				expectedCount: 2,
-				validate: func(t *testing.T, results []*dcim.Location) {
+				validate: func(t *testing.T, results []*client.Location) {
 					for _, loc := range results {
 						assert.Contains(t, loc.Name, "Building")
 					}
@@ -155,11 +155,11 @@ func TestLocationIntegration(t *testing.T) {
 			},
 			{
 				name: "Filter by tag",
-				input: &dcim.ListLocationsInput{
+				input: &client.ListLocationsInput{
 					Tag: "floor",
 				},
 				expectedCount: 6,
-				validate: func(t *testing.T, results []*dcim.Location) {
+				validate: func(t *testing.T, results []*client.Location) {
 					for _, loc := range results {
 						assert.Contains(t, loc.Name, "Floor")
 					}
@@ -169,7 +169,7 @@ func TestLocationIntegration(t *testing.T) {
 
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
-				list, err := service.ListLocations(tt.input)
+				list, err := client.DCIM().ListLocations(tt.input)
 				require.NoError(t, err)
 				require.NotNil(t, list)
 				assert.Equal(t, tt.expectedCount, len(list))
@@ -180,7 +180,7 @@ func TestLocationIntegration(t *testing.T) {
 		}
 
 		// Test updating location with new relationships
-		updateInput := &dcim.UpdateLocationInput{
+		updateInput := &client.UpdateLocationInput{
 			ID:          locations["building1"].ID,
 			Name:        "Updated Building 1",
 			Slug:        "updated-building-1",
@@ -188,7 +188,7 @@ func TestLocationIntegration(t *testing.T) {
 			Site:        site.ID, // Change to parent group
 			Parent:      campus.ID,
 		}
-		updated, err := service.UpdateLocation(updateInput)
+		updated, err := client.DCIM().UpdateLocation(updateInput)
 		require.NoError(t, err)
 		require.NotNil(t, updated)
 		assert.Equal(t, updateInput.Name, updated.Name)

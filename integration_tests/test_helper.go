@@ -5,11 +5,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 	"github.com/zeddD1abl0/go-netbox-client/client"
-	"github.com/zeddD1abl0/go-netbox-client/client/dcim"
 )
 
 // setupTestClient creates a new client for testing
-func setupTestClient(t *testing.T) (*client.Client, *dcim.Service) {
+func setupTestClient(t *testing.T) *client.Client {
 	cfg := LoadTestConfig(t)
 
 	c, err := client.NewClient(
@@ -21,7 +20,7 @@ func setupTestClient(t *testing.T) (*client.Client, *dcim.Service) {
 	require.NoError(t, err)
 	require.NotNil(t, c)
 
-	return c, dcim.NewService(c)
+	return c
 }
 
 // cleanupResource is a generic cleanup function that takes a delete function
@@ -48,4 +47,8 @@ func (c *cleanupList) runAll() {
 			c.t.Logf("Cleanup error: %v", err)
 		}
 	}
+}
+
+func strPtr(s string) *string {
+	return &s
 }

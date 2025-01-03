@@ -4,13 +4,17 @@ import (
 	"fmt"
 	"strings"
 	"time"
+
 	"github.com/go-resty/resty/v2"
+
+	"github.com/zeddD1abl0/go-netbox-client/client/dcim"
+	"github.com/zeddD1abl0/go-netbox-client/client/extras"
 )
 
 const (
-	defaultAPIVersion = "4.0"
-	defaultTimeout    = 30 // seconds
-	defaultRetryCount = 3
+	defaultAPIVersion    = "4.0"
+	defaultTimeout       = 30 // seconds
+	defaultRetryCount    = 3
 	defaultRetryWaitTime = 5 // seconds
 )
 
@@ -46,6 +50,8 @@ type Client struct {
 	httpClient HTTPClient
 	baseURL    string
 	token      string
+	dcim       *dcim.Service
+	extras     *extras.Service
 }
 
 // NewClient creates a new Netbox client
@@ -57,45 +63,51 @@ func NewClient(baseURL, token string, opts ...ClientOption) (*Client, error) {
 		return nil, fmt.Errorf("token cannot be empty")
 	}
 
-	// Ensure baseURL has a trailing slash
-	if !strings.HasSuffix(baseURL, "/") {
-		baseURL = baseURL + "/"
+	// Ensure baseURL ends with /api
+	if !strings.HasSuffix(baseURL, "/api") {
+		baseURL = strings.TrimSuffix(baseURL, "/") + "/api"
 	}
 
-	restyClient := resty.New()
-	client := &Client{
-		httpClient: restyClient,
+	// Create HTTP client
+	httpClient := resty.New().
+		SetTimeout(time.Duration(defaultTimeout)*time.Second).
+		SetRetryCount(defaultRetryCount).
+		SetRetryWaitTime(time.Duration(defaultRetryWaitTime)*time.Second).
+		SetAuthToken(token).
+		SetHeader("Accept", "application/json")
+
+	// Create client
+	c := &Client{
+		httpClient: httpClient,
 		baseURL:    baseURL,
 		token:      token,
 	}
 
-	// Set default headers
-	restyClient.SetHeader("Authorization", fmt.Sprintf("Token %s", token))
-	restyClient.SetHeader("Accept", "application/json")
-	restyClient.SetHeader("Content-Type", "application/json")
-
-	// Set default timeout
-	restyClient.SetTimeout(defaultTimeout * time.Second)
-
-	// Set default retry configuration
-	restyClient.
-		SetRetryCount(defaultRetryCount).
-		SetRetryWaitTime(defaultRetryWaitTime * time.Second).
-		AddRetryCondition(func(r *resty.Response, err error) bool {
-			return err != nil || r.StatusCode() >= 500
-		})
-
-	// Apply any custom options
+	// Apply options
 	for _, opt := range opts {
-		opt(client)
+		opt(c)
 	}
 
-	return client, nil
+	// Initialize services
+	c.dcim = dcim.NewService(c)
+	c.extras = extras.NewService(c)
+
+	return c, nil
 }
 
 // R returns a new request object
 func (c *Client) R() *resty.Request {
 	return c.httpClient.R()
+}
+
+// DCIM returns the DCIM service
+func (c *Client) DCIM() *dcim.Service {
+	return c.dcim
+}
+
+// Extras returns the Extras service
+func (c *Client) Extras() *extras.Service {
+	return c.extras
 }
 
 // Response represents a paginated response from the Netbox API

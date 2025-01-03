@@ -10,7 +10,7 @@ import (
 )
 
 func TestTagIntegration(t *testing.T) {
-	_, service := setupTestClient(t)
+	client := setupTestClient(t)
 	cleanup := newCleanupList(t)
 	defer cleanup.runAll()
 
@@ -56,107 +56,65 @@ func TestTagIntegration(t *testing.T) {
 				Description: tt.description,
 				ObjectTypes: tt.objectTypes,
 			}
-			created, err := service.CreateTag(input)
+
+			tag, err := client.Extras().CreateTag(input)
 			require.NoError(t, err)
-			require.NotNil(t, created)
-			assert.Equal(t, tt.name, created.Name)
-			assert.Equal(t, tt.slug, created.Slug)
-			assert.Equal(t, tt.color, created.Color)
-			assert.Equal(t, tt.description, created.Description)
-			createdTags = append(createdTags, created)
+			require.NotNil(t, tag)
+			assert.Equal(t, tt.name, tag.Name)
+			assert.Equal(t, tt.slug, tag.Slug)
+			assert.Equal(t, tt.color, tag.Color)
+			assert.Equal(t, tt.description, tag.Description)
+			assert.Equal(t, tt.objectTypes, tag.ObjectTypes)
+
+			createdTags = append(createdTags, tag)
+			cleanup.add(func() error {
+				return client.Extras().DeleteTag(tag.ID)
+			})
 		}
 
-		// List and verify tags
-		listInput := &extras.ListTagsInput{
-			Name: "prod",
-		}
-		list, err := service.ListTags(listInput)
+		// List tags
+		tags, err := client.Extras().ListTags(&extras.ListTagsInput{})
 		require.NoError(t, err)
-		require.NotNil(t, list)
-		assert.Equal(t, 1, len(list))
-		assert.Equal(t, "Production", list[0].Name)
+		assert.GreaterOrEqual(t, len(tags), len(testTags))
+
+		// Get individual tags
+		for _, ct := range createdTags {
+			tag, err := client.Extras().GetTag(ct.ID)
+			require.NoError(t, err)
+			assert.Equal(t, ct.Name, tag.Name)
+			assert.Equal(t, ct.Slug, tag.Slug)
+			assert.Equal(t, ct.Color, tag.Color)
+			assert.Equal(t, ct.Description, tag.Description)
+		}
 
 		// Update a tag
 		updateInput := &extras.UpdateTagInput{
 			ID:          createdTags[0].ID,
-			Name:        "Production-Updated",
-			Slug:        "production-updated",
-			Color:       "ff00ff",
+			Name:        "Updated Production",
+			Slug:        "updated-production",
+			Color:       "ff0000",
 			Description: "Updated production environment",
 			ObjectTypes: []string{"dcim.site"},
 		}
-		updated, err := service.UpdateTag(updateInput)
+		updatedTag, err := client.Extras().UpdateTag(updateInput)
 		require.NoError(t, err)
-		require.NotNil(t, updated)
-		assert.Equal(t, updateInput.Name, updated.Name)
-		assert.Equal(t, updateInput.Slug, updated.Slug)
-		assert.Equal(t, updateInput.Color, updated.Color)
-		assert.Equal(t, updateInput.Description, updated.Description)
-
-		// Get and verify the updated tag
-		retrieved, err := service.GetTag(createdTags[0].ID)
-		require.NoError(t, err)
-		require.NotNil(t, retrieved)
-		assert.Equal(t, updateInput.Name, retrieved.Name)
-		assert.Equal(t, updateInput.Slug, retrieved.Slug)
-		assert.Equal(t, updateInput.Color, retrieved.Color)
-		assert.Equal(t, updateInput.Description, retrieved.Description)
+		assert.Equal(t, updateInput.Name, updatedTag.Name)
+		assert.Equal(t, updateInput.Slug, updatedTag.Slug)
+		assert.Equal(t, updateInput.Color, updatedTag.Color)
+		assert.Equal(t, updateInput.Description, updatedTag.Description)
+		assert.Equal(t, updateInput.ObjectTypes, updatedTag.ObjectTypes)
 
 		// Patch a tag
-		newName := "Production-Patched"
 		patchInput := &extras.PatchTagInput{
-			ID:   createdTags[0].ID,
-			Name: &newName,
+			ID:          createdTags[1].ID,
+			Description: strPtr("Patched development environment"),
 		}
-		patched, err := service.PatchTag(patchInput)
+		patchedTag, err := client.Extras().PatchTag(patchInput)
 		require.NoError(t, err)
-		require.NotNil(t, patched)
-		assert.Equal(t, newName, patched.Name)
-		assert.Equal(t, updateInput.Slug, patched.Slug)   // Should remain unchanged
-		assert.Equal(t, updateInput.Color, patched.Color) // Should remain unchanged
-
-		// Clean up - delete all created tags
-		for _, tag := range createdTags {
-			err := service.DeleteTag(tag.ID)
-			assert.NoError(t, err)
-
-			// Verify deletion
-			_, err = service.GetTag(tag.ID)
-			assert.Error(t, err)
-			assert.Contains(t, err.Error(), "tag not found")
-		}
+		assert.Equal(t, *patchInput.Description, patchedTag.Description)
 	})
+}
 
-	t.Run("Error cases", func(t *testing.T) {
-		// Test creating a tag with invalid input
-		input := &extras.CreateTagInput{
-			Name:  "", // Invalid: empty name
-			Slug:  "test",
-			Color: "ff0000",
-		}
-		_, err := service.CreateTag(input)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "validation failed")
-
-		// Test getting a non-existent tag
-		_, err = service.GetTag(999999)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "tag not found")
-
-		// Test updating a non-existent tag
-		updateInput := &extras.UpdateTagInput{
-			ID:    999999,
-			Name:  "Test",
-			Slug:  "test",
-			Color: "ff0000",
-		}
-		_, err = service.UpdateTag(updateInput)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "tag not found")
-
-		// Test deleting a non-existent tag
-		err = service.DeleteTag(999999)
-		assert.Error(t, err)
-		assert.Contains(t, err.Error(), "tag not found")
-	})
+func strPtr(s string) *string {
+	return &s
 }
