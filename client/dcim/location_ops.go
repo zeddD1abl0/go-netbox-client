@@ -8,8 +8,8 @@ import (
 )
 
 // ListLocations lists all locations
-func (s *Service) ListLocations(input *ListLocationsInput) ([]Location, error) {
-	path := s.BuildPath("dcim", "locations")
+func (service *Service) ListLocations(input *ListLocationsInput) ([]Location, error) {
+	path := service.BuildPath("dcim", "locations")
 
 	// Build query parameters
 	params := map[string]string{}
@@ -35,7 +35,7 @@ func (s *Service) ListLocations(input *ListLocationsInput) ([]Location, error) {
 	// Make request
 	var response client.Response
 	response.Results = make([]any, 0)
-	_, err := s.Client.R().
+	_, err := service.Client.R().
 		SetQueryParams(params).
 		SetResult(&response).
 		Get(path)
@@ -58,11 +58,11 @@ func (s *Service) ListLocations(input *ListLocationsInput) ([]Location, error) {
 }
 
 // GetLocation retrieves a single location by ID
-func (s *Service) GetLocation(id int) (*Location, error) {
-	path := s.BuildPath("dcim", "locations", fmt.Sprintf("%d", id))
+func (service *Service) GetLocation(id int) (*Location, error) {
+	path := service.BuildPath("dcim", "locations", fmt.Sprintf("%d", id))
 
 	var location Location
-	resp, err := s.Client.R().
+	resp, err := service.Client.R().
 		SetResult(&location).
 		Get(path)
 
@@ -82,15 +82,15 @@ func (s *Service) GetLocation(id int) (*Location, error) {
 }
 
 // CreateLocation creates a new location
-func (s *Service) CreateLocation(input *CreateLocationInput) (*Location, error) {
+func (service *Service) CreateLocation(input *CreateLocationInput) (*Location, error) {
 	if err := input.Validate(); err != nil {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	path := s.BuildPath("dcim", "locations")
+	path := service.BuildPath("dcim", "locations")
 
 	var location Location
-	resp, err := s.Client.R().
+	resp, err := service.Client.R().
 		SetBody(input).
 		SetResult(&location).
 		Post(path)
@@ -107,15 +107,15 @@ func (s *Service) CreateLocation(input *CreateLocationInput) (*Location, error) 
 }
 
 // UpdateLocation updates an existing location
-func (s *Service) UpdateLocation(input *UpdateLocationInput) (*Location, error) {
+func (service *Service) UpdateLocation(input *UpdateLocationInput) (*Location, error) {
 	if err := input.Validate(); err != nil {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	path := s.BuildPath("dcim", "locations", fmt.Sprintf("%d", input.ID))
+	path := service.BuildPath("dcim", "locations", fmt.Sprintf("%d", input.ID))
 
 	var location Location
-	resp, err := s.Client.R().
+	resp, err := service.Client.R().
 		SetBody(input).
 		SetResult(&location).
 		Put(path)
@@ -136,10 +136,10 @@ func (s *Service) UpdateLocation(input *UpdateLocationInput) (*Location, error) 
 }
 
 // DeleteLocation deletes a location
-func (s *Service) DeleteLocation(id int) error {
-	path := s.BuildPath("dcim", "locations", fmt.Sprintf("%d", id))
+func (service *Service) DeleteLocation(id int) error {
+	path := service.BuildPath("dcim", "locations", fmt.Sprintf("%d", id))
 
-	resp, err := s.Client.R().
+	resp, err := service.Client.R().
 		Delete(path)
 
 	if err != nil {
@@ -158,15 +158,15 @@ func (s *Service) DeleteLocation(id int) error {
 }
 
 // PutLocation creates or updates a location
-func (s *Service) PutLocation(input *UpdateLocationInput) (*Location, error) {
+func (service *Service) PutLocation(input *UpdateLocationInput) (*Location, error) {
 	if err := input.Validate(); err != nil {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	path := s.BuildPath("dcim", "locations", fmt.Sprintf("%d", input.ID))
+	path := service.BuildPath("dcim", "locations", fmt.Sprintf("%d", input.ID))
 
 	var location Location
-	resp, err := s.Client.R().
+	resp, err := service.Client.R().
 		SetBody(input).
 		SetResult(&location).
 		Put(path)
@@ -187,15 +187,15 @@ func (s *Service) PutLocation(input *UpdateLocationInput) (*Location, error) {
 }
 
 // PatchLocation patches a location
-func (s *Service) PatchLocation(input *PatchLocationInput) (*Location, error) {
+func (service *Service) PatchLocation(input *PatchLocationInput) (*Location, error) {
 	if err := input.Validate(); err != nil {
 		return nil, fmt.Errorf("validation failed: %w", err)
 	}
 
-	path := s.BuildPath("dcim", "locations", fmt.Sprintf("%d", input.ID))
+	path := service.BuildPath("dcim", "locations", fmt.Sprintf("%d", input.ID))
 
 	var location Location
-	resp, err := s.Client.R().
+	resp, err := service.Client.R().
 		SetBody(input).
 		SetResult(&location).
 		Patch(path)
