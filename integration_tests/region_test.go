@@ -7,7 +7,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"github.com/zeddD1abl0/go-netbox-client/client/dcim"
-	"github.com/zeddD1abl0/go-netbox-client/models"
 )
 
 func TestRegionIntegration(t *testing.T) {
@@ -112,16 +111,17 @@ func TestRegionIntegration(t *testing.T) {
 				Name:        r.name,
 				Slug:        r.slug,
 				Description: r.description,
-				Tags:        make([]models.TagCreate, len(r.tags)),
+				//Tags:        make([]models.TagCreate, len(r.tags)),
 			}
-			for i, tag := range r.tags {
-				input.Tags[i] = models.TagCreate{
-					Name:  tag,
-					Slug:  tag,
-					Color: "0xFF00FF",
-				}
-			}
-			fmt.Printf("Creating region: %+v\n", input) // Add this line to print the input
+			// for i, tag := range r.tags {
+			// 	input.Tags[i] = models.TagCreate{
+			// 		Name:  tag,
+			// 		Slug:  tag,
+			// 		Color: "0xFF00FF",
+			// 	}
+			// }
+			// pretty, err := json.MarshalIndent(input, "", "  ")
+			// fmt.Printf("Creating region: %s\n", pretty)
 			created, err := service.CreateRegion(input)
 			require.NoError(t, err)
 			require.NotNil(t, created)
