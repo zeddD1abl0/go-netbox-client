@@ -3,8 +3,6 @@ package client
 import (
 	"fmt"
 	"net/http"
-
-	"github.com/zeddD1abl0/go-netbox-client/client"
 )
 
 // ListLocations lists all locations
@@ -33,7 +31,7 @@ func (service *Service) ListLocations(input *ListLocationsInput) ([]Location, er
 	}
 
 	// Make request
-	var response client.Response
+	var response Response
 	response.Results = make([]any, 0)
 	_, err := service.Client.R().
 		SetQueryParams(params).

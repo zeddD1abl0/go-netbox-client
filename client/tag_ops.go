@@ -61,14 +61,14 @@ func (service *Service) ListTags(input *ListTagsInput) ([]models.Tag, error) {
 		if description, ok := resultMap["description"].(string); ok {
 			tag.Description = description
 		}
-		if objectTypes, ok := resultMap["object_types"].([]any); ok {
-			tag.ObjectTypes = make([]string, len(objectTypes))
-			for j, ot := range objectTypes {
-				if otStr, ok := ot.(string); ok {
-					tag.ObjectTypes[j] = otStr
-				}
-			}
-		}
+		// if objectTypes, ok := resultMap["object_types"].([]any); ok {
+		// 	tag.ObjectTypes = make([]string, len(objectTypes))
+		// 	for j, ot := range objectTypes {
+		// 		if otStr, ok := ot.(string); ok {
+		// 			tag.ObjectTypes[j] = otStr
+		// 		}
+		// 	}
+		// }
 		tags[i] = tag
 	}
 

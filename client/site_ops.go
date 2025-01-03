@@ -3,8 +3,6 @@ package client
 import (
 	"fmt"
 	"net/http"
-
-	"github.com/zeddD1abl0/go-netbox-client/client"
 )
 
 // ListSites lists all sites matching the input criteria
@@ -33,7 +31,7 @@ func (service *Service) ListSites(input *ListSitesInput) ([]Site, error) {
 	}
 
 	// Make request
-	var response client.Response
+	var response Response
 	response.Results = make([]any, 0)
 	_, err := service.Client.R().
 		SetQueryParams(params).

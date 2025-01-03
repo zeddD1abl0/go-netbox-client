@@ -20,10 +20,3 @@ func (s *Service) BuildPath(parts ...string) string {
 	}
 	return path
 }
-
-// NewService creates a new service with the given client
-func (c *Client) NewService() *Service {
-	return &Service{
-		Client: c,
-	}
-}

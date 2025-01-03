@@ -6,9 +6,6 @@ import (
 	"time"
 
 	"github.com/go-resty/resty/v2"
-
-	"github.com/zeddD1abl0/go-netbox-client/client/dcim"
-	"github.com/zeddD1abl0/go-netbox-client/client/extras"
 )
 
 const (
@@ -50,8 +47,6 @@ type Client struct {
 	httpClient HTTPClient
 	baseURL    string
 	token      string
-	dcim       *dcim.Service
-	extras     *extras.Service
 }
 
 // NewClient creates a new Netbox client
@@ -88,26 +83,12 @@ func NewClient(baseURL, token string, opts ...ClientOption) (*Client, error) {
 		opt(c)
 	}
 
-	// Initialize services
-	c.dcim = dcim.NewService(c)
-	c.extras = extras.NewService(c)
-
 	return c, nil
 }
 
 // R returns a new request object
 func (c *Client) R() *resty.Request {
 	return c.httpClient.R()
-}
-
-// DCIM returns the DCIM service
-func (c *Client) DCIM() *dcim.Service {
-	return c.dcim
-}
-
-// Extras returns the Extras service
-func (c *Client) Extras() *extras.Service {
-	return c.extras
 }
 
 // Response represents a paginated response from the Netbox API
